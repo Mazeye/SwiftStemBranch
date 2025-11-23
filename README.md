@@ -6,17 +6,16 @@
 
 A high-precision Chinese Gan-Zhi (Stem-Branch) calendar library for Swift.
 
-It features **astronomical-grade accuracy** for solar terms calculation (based on Jean Meeus algorithms) and supports **True Solar Time** correction, making it ideal for professional BaZi (Four Pillars of Destiny) applications.
+It features **astronomical-grade accuracy** for solar terms calculation (based on Jean Meeus algorithms) and supports **True Solar Time** correction directly on the standard `Date` type.
 
 > [English](README.md) | [简体中文](README_CN.md) | [日本語](README_JP.md)
 
 ## ✨ Features
 
-*   **Pure Swift**: Zero dependencies, supports SPM.
-*   **High Precision**: Uses simplified VSOP87/Meeus algorithms to calculate Apparent Solar Longitude for precise solar term determination (accurate to the minute).
+*   **Pure Swift Extension**: Directly extends `Date` for seamless integration.
+*   **High Precision**: Uses simplified VSOP87/Meeus algorithms to calculate Apparent Solar Longitude for precise solar term determination.
 *   **True Solar Time**: Automatically corrects time based on longitude and Equation of Time (EoT).
 *   **Scientific Day Calculation**: Uses Julian Day algorithms to eliminate timezone and leap year drifts.
-*   **Modular Design**: Clean architecture with deep modules.
 
 ## 📦 Installation
 
@@ -39,11 +38,11 @@ Or in Xcode: `File` > `Add Packages...` > Enter repository URL.
 ```swift
 import GanZhi
 
-// Initialize with Gregorian date
-let date = LunarDate(y: 2024, m: 2, d: 4, h: 16, min: 30)
+// Initialize a Date (using the provided helper or standard methods)
+let date = Date(year: 2024, month: 2, day: 4, hour: 16, minute: 30)!
 
-// Get Four Pillars
-let pillars = date.fourPillars
+// Get Four Pillars directly from Date
+let pillars = date.fourPillars()
 
 print(pillars.description) 
 // Output: 甲辰年 丙寅月 戊戌日 庚申时
@@ -57,7 +56,7 @@ Location matters. The library can adjust the time column based on longitude.
 import GanZhi
 
 // Birthplace: Urumqi (Longitude 87.6°), Time: Beijing Time 10:00
-let date = LunarDate(y: 2024, m: 6, d: 15, h: 10, min: 0)
+let date = Date(year: 2024, month: 6, day: 15, hour: 10, minute: 0)!
 let urumqi = Location(longitude: 87.6, timeZone: 8.0)
 
 // Get corrected pillars
@@ -71,4 +70,3 @@ print(pillars.hour.character)
 ## 📄 License
 
 MIT License. See [LICENSE](LICENSE) for details.
-

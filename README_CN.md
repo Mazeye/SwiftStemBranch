@@ -6,17 +6,16 @@
 
 一个纯 Swift 编写的高精度干支（八字）历法库。
 
-它不依赖任何查表数据，而是基于 **Jean Meeus 天文算法** 实现精确的节气计算和真太阳时修正，旨在为 iOS/macOS 开发者提供最科学、最准确的八字排盘工具。
+它不依赖任何查表数据，而是基于 **Jean Meeus 天文算法** 实现精确的节气计算，并直接扩展了标准 `Date` 类型以支持真太阳时修正。
 
 > [English](README.md) | [简体中文](README_CN.md) | [日本語](README_JP.md)
 
 ## ✨ 核心特性
 
-*   **纯 Swift 实现**：零依赖，轻量级，支持 SPM。
-*   **天文级精度**：内置简化版 VSOP87/Meeus 算法计算太阳视黄经，精确判定节气交接时刻（精确到分）。
-*   **真太阳时修正**：支持根据经度与均时差（Equation of Time）自动修正排盘时间，这对于精确排盘（特别是时柱）至关重要。
+*   **纯 Swift 扩展**：直接扩展 `Date` 类型，零依赖，无缝集成。
+*   **天文级精度**：内置简化版 VSOP87/Meeus 算法计算太阳视黄经，精确判定节气交接时刻。
+*   **真太阳时修正**：支持根据经度与均时差（Equation of Time）自动修正排盘时间。
 *   **科学的日柱计算**：使用儒略日（Julian Day）算法，消除时区和闰年造成的日期偏差。
-*   **模块化设计**：分层清晰，易于扩展。
 
 ## 📦 安装
 
@@ -41,15 +40,14 @@ dependencies: [
 ```swift
 import GanZhi
 
-// 初始化日期 (公历)
-let date = LunarDate(y: 2024, m: 2, d: 4, h: 16, min: 30)
+// 初始化日期 (使用提供的辅助构造器或标准方法)
+let date = Date(year: 2024, month: 2, day: 4, hour: 16, minute: 30)!
 
-// 获取八字
-let pillars = date.fourPillars
+// 直接从 Date 获取八字
+let pillars = date.fourPillars()
 
 print(pillars.description) 
 // 输出: 甲辰年 丙寅月 戊戌日 庚申时
-// (自动处理立春节点，即使在2月4日当天也能根据具体时间判定年柱)
 ```
 
 ### 2. 高级排盘（真太阳时）
@@ -60,7 +58,7 @@ print(pillars.description)
 import GanZhi
 
 // 假设出生在乌鲁木齐 (东经 87.6°)，时间是北京时间 10:00
-let date = LunarDate(y: 2024, m: 6, d: 15, h: 10, min: 0)
+let date = Date(year: 2024, month: 6, day: 15, hour: 10, minute: 0)!
 let urumqi = Location(longitude: 87.6, timeZone: 8.0)
 
 // 获取修正后的八字
@@ -71,29 +69,6 @@ print(pillars.hour.character)
 // 修正后约 07:50，变为辰时 (07:00-09:00)
 ```
 
-### 3. 基础类型操作
-
-你也可以单独使用天干地支类型进行计算：
-
-```swift
-let jiaZi = StemBranch.from(index: 0) // 甲子
-print(jiaZi.next.character) // 乙丑
-print(jiaZi.stem.character) // 甲
-print(jiaZi.branch.character) // 子
-```
-
-## 📚 算法说明
-
-### 节气计算
-不同于传统的查表法（容易过时且不准），本库通过计算太阳视黄经（Apparent Solar Longitude）来动态判定节气。
-*   **立春**: 太阳黄经 315°
-*   **惊蛰**: 太阳黄经 345°
-*   ...
-
-### 日柱基准
-本库采用 **2000年1月1日 (戊午日)** 作为天文计算基准点，通过儒略日连续性推导，确保了日柱的绝对准确性。
-
 ## 📄 许可证
 
-本项目基于 MIT 许可证开源。详见 [LICENSE](LICENSE) 文件。
-
+本项目基于 MIT 许可证开源。详见 [LICENSE](LICENSE) ファイル。
