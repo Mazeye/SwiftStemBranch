@@ -21,38 +21,24 @@ final class GanZhiTests: XCTestCase {
     
     func testRealWorldBazi() {
         // Test case: 2008-08-08 20:08 (Beijing Olympics Opening)
-        // Standard Time: 2008-08-08 20:08
-        // Based on Math Continuity from 2000-01-01 (Wu-Wu):
-        // Year: Wu-Zi (戊子)
-        // Month: Geng-Shen (庚申)
-        // Day: Geng-Chen (庚辰)
-        // Hour: Bing-Xu (丙戌)
+        // Correct BaZi: Wu-Zi Year, Geng-Shen Month, Geng-Chen Day, Bing-Xu Hour
         
-        let date = LunarDate(y: 2008, m: 8, d: 8, h: 20, min: 8)
-        let pillars = date.fourPillars
+        // Use standard calendar
+        let date = Date(year: 2008, month: 8, day: 8, hour: 20, minute: 8)!
+        let pillars = date.fourPillars()
         
-        // 2008 is Wu-Zi (戊子)
         XCTAssertEqual(pillars.year.character, "戊子")
-        
-        // August 8 is after Li Qiu (Start of Autumn, Aug 7).
-        // So it is Shen (Monkey) Month.
-        // Wu Year -> Geng-Shen Month
         XCTAssertEqual(pillars.month.character, "庚申")
-        
-        // Day Pillar: 2008-08-08
-        // Mathematical Calculation: Geng-Chen (庚辰)
         XCTAssertEqual(pillars.day.character, "庚辰")
-        
-        // Hour Pillar: 20:08 is Xu Hour (19:00-21:00)
-        // Geng Day -> Bing-Xu Hour (Five Rats: Yi/Geng -> Bing)
         XCTAssertEqual(pillars.hour.character, "丙戌")
     }
     
     func testTrueSolarTimeAdjustment() {
-        let date = LunarDate(y: 2024, m: 6, d: 15, h: 10, min: 0) // 10:00
+        // 2024-06-15 10:00
+        let date = Date(year: 2024, month: 6, day: 15, hour: 10, minute: 0)!
         let urumqi = Location(longitude: 87.6, timeZone: 8.0)
         
-        let standardPillars = date.fourPillars
+        let standardPillars = date.fourPillars()
         let trueSolarPillars = date.fourPillars(at: urumqi)
         
         XCTAssertEqual(standardPillars.hour.branch.character, "巳")

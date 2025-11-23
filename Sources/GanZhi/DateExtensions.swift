@@ -1,0 +1,135 @@
+import Foundation
+
+public extension Date {
+    
+    /// Calculates the Four Pillars (BaZi) for this date.
+    ///
+    /// - Parameter calendar: The calendar to use for interpreting the date components (Year/Month/Day/Hour). 
+    ///                       Defaults to `Calendar.current`.
+    /// - Returns: The Four Pillars structure.
+    func fourPillars(calendar: Calendar = .current) -> FourPillars {
+        return calculateFourPillars(for: self, using: calendar)
+    }
+    
+    /// Calculates the Four Pillars (BaZi) using True Solar Time for a specific location.
+    ///
+    /// - Parameters:
+    ///   - location: The geographic location (longitude and timezone) for time correction.
+    ///   - calendar: The calendar used for date component interpretation. Defaults to `Calendar.current`.
+    /// - Returns: The corrected Four Pillars structure.
+    func fourPillars(at location: Location, calendar: Calendar = .current) -> FourPillars {
+        let trueSolarDate = getTrueSolarTime(for: self, location: location, calendar: calendar)
+        return calculateFourPillars(for: trueSolarDate, using: calendar)
+    }
+    
+    // MARK: - Helper Initializer
+    
+    /// Creates a Date from components.
+    /// - Parameters:
+    ///   - year: Year
+    ///   - month: Month
+    ///   - day: Day
+    ///   - hour: Hour (0-23)
+    ///   - minute: Minute (0-59)
+    ///   - timeZone: TimeZone (defaults to current)
+    init?(year: Int, month: Int, day: Int, hour: Int, minute: Int, timeZone: TimeZone = .current) {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = timeZone
+        var comps = DateComponents()
+        comps.year = year
+        comps.month = month
+        comps.day = day
+        comps.hour = hour
+        comps.minute = minute
+        guard let date = calendar.date(from: comps) else { return nil }
+        self = date
+    }
+    
+    // MARK: - Internal Logic
+    
+    private func calculateFourPillars(for date: Date, using calendar: Calendar) -> FourPillars {
+        // 1. Astronomical Solar Longitude (based on absolute UTC time)
+        let longitude = SolarCalculator.getSolarLongitude(date: date)
+        
+        // 2. Day Pillar Calculation
+        // We use UTC Calendar difference to ensure robust day counting.
+        
+        var utcCal = Calendar(identifier: .gregorian)
+        utcCal.timeZone = TimeZone(secondsFromGMT: 0)!
+        
+        // Base Date: 2000-01-01 (Wu-Wu, index 54)
+        let baseDate = DateComponents(calendar: utcCal, year: 2000, month: 1, day: 1).date!
+        
+        // Extract Y/M/D from input date using the provided calendar (User's local time context)
+        let comps = calendar.dateComponents([.year, .month, .day, .hour], from: date)
+        let currentYear = comps.year!
+        let currentMonth = comps.month!
+        let currentDay = comps.day!
+        let currentHour = comps.hour!
+        
+        // Construct Target Date as 20xx-xx-xx 00:00:00 UTC
+        // This effectively treats the local date as a UTC date for day-counting purposes.
+        let targetComponents = DateComponents(year: currentYear, month: currentMonth, day: currentDay)
+        let targetDate = utcCal.date(from: targetComponents)!
+        
+        let daysDiff = utcCal.dateComponents([.day], from: baseDate, to: targetDate).day!
+        
+        // Base Index 54 (Wu-Wu)
+        let baseIndex = 54
+        
+        let normalizedDiff = (daysDiff % 60 + 60) % 60
+        let dayIndex = (baseIndex + normalizedDiff) % 60
+        
+        let daySB = StemBranch.from(index: dayIndex)
+        
+        // --- Year Pillar ---
+        var effectiveYear = currentYear
+        if currentMonth < 3 && longitude < 315 {
+            effectiveYear -= 1
+        }
+        let yearIndex = (effectiveYear - 4 + 6000) % 60
+        let yearSB = StemBranch.from(index: yearIndex)
+        
+        // --- Month Pillar ---
+        let adjustedLong = SolarCalculator.normalize(longitude - 315)
+        let monthBranchOffset = Int(floor(adjustedLong / 30.0))
+        let rawBranchIndex = monthBranchOffset + 2 
+        let monthBranch = Branch.from(index: rawBranchIndex)
+        
+        let monthStemStart = (yearSB.stem.index % 5) * 2 + 2
+        let monthOffset = (monthBranch.index - 2 + 12) % 12
+        let monthStem = Stem.from(index: monthStemStart + monthOffset)
+        let monthSB = StemBranch(stem: monthStem, branch: monthBranch)
+        
+        // --- Hour Pillar ---
+        let hourBranchIndex = (currentHour + 1) / 2
+        let hourBranch = Branch.from(index: hourBranchIndex)
+        
+        let lookupDayStem: Stem
+        if currentHour >= 23 {
+            lookupDayStem = daySB.stem.next
+        } else {
+            lookupDayStem = daySB.stem
+        }
+        
+        let hourStemStart = (lookupDayStem.index % 5) * 2
+        let hourStem = Stem.from(index: hourStemStart + hourBranch.index)
+        let hourSB = StemBranch(stem: hourStem, branch: hourBranch)
+        
+        return FourPillars(year: yearSB, month: monthSB, day: daySB, hour: hourSB)
+    }
+    
+    private func getTrueSolarTime(for date: Date, location: Location, calendar: Calendar) -> Date {
+        // 1. Longitude Correction
+        let standardLongitude = location.timeZone * 15.0
+        let longitudeDiff = location.longitude - standardLongitude
+        let longitudeCorrectionMin = longitudeDiff * 4.0
+        
+        // 2. Equation of Time Correction
+        let eotMin = SolarCalculator.getEquationOfTime(date: date)
+        
+        let totalCorrectionMin = longitudeCorrectionMin + eotMin
+        return date.addingTimeInterval(totalCorrectionMin * 60.0)
+    }
+}
+
