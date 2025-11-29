@@ -5,9 +5,9 @@ public extension Date {
     /// Calculates the Four Pillars (BaZi) for this date.
     ///
     /// - Parameter calendar: The calendar to use for interpreting the date components (Year/Month/Day/Hour). 
-    ///                       Defaults to `Calendar.current`.
+    ///                       Defaults to `Calendar(identifier: .gregorian)` to ensure consistency across system settings.
     /// - Returns: The Four Pillars structure.
-    func fourPillars(calendar: Calendar = .current) -> FourPillars {
+    func fourPillars(calendar: Calendar = Calendar(identifier: .gregorian)) -> FourPillars {
         return calculateFourPillars(for: self, using: calendar)
     }
     
@@ -15,9 +15,9 @@ public extension Date {
     ///
     /// - Parameters:
     ///   - location: The geographic location (longitude and timezone) for time correction.
-    ///   - calendar: The calendar used for date component interpretation. Defaults to `Calendar.current`.
+    ///   - calendar: The calendar used for date component interpretation. Defaults to `Calendar(identifier: .gregorian)`.
     /// - Returns: The corrected Four Pillars structure.
-    func fourPillars(at location: Location, calendar: Calendar = .current) -> FourPillars {
+    func fourPillars(at location: Location, calendar: Calendar = Calendar(identifier: .gregorian)) -> FourPillars {
         let trueSolarDate = getTrueSolarTime(for: self, location: location, calendar: calendar)
         return calculateFourPillars(for: trueSolarDate, using: calendar)
     }
@@ -48,27 +48,38 @@ public extension Date {
     // MARK: - Internal Logic
     
     private func calculateFourPillars(for date: Date, using calendar: Calendar) -> FourPillars {
+        // Force the calendar to be Gregorian if it's not passed explicitly, 
+        // but even if passed, we must ensure the interpretation of Y/M/D is solar-based for the algorithm.
+        // However, if the user INTENDS to use a different calendar (e.g. ISO8601), we respect it.
+        // BUT, GanZhi calculation relies on solar terms which align with Gregorian dates.
+        // The safest way is to ensure we interpret the components as Gregorian components.
+        // If the user passes a Chinese Calendar, `comps.year` might be 4721, which breaks SolarCalculator.
+        
+        // CRITICAL FIX: We must ensure we use a Gregorian calendar to extract components 
+        // for the SolarCalculator and Index algorithms, regardless of what the user's system calendar is.
+        // The `calendar` parameter is retained for TimeZone info, but the Identifier must be Gregorian.
+        
+        var gregCal = Calendar(identifier: .gregorian)
+        gregCal.timeZone = calendar.timeZone // Preserve the timezone from the input calendar
+        
         // 1. Astronomical Solar Longitude (based on absolute UTC time)
         let longitude = SolarCalculator.getSolarLongitude(date: date)
         
         // 2. Day Pillar Calculation
-        // We use UTC Calendar difference to ensure robust day counting.
-        
         var utcCal = Calendar(identifier: .gregorian)
         utcCal.timeZone = TimeZone(secondsFromGMT: 0)!
         
         // Base Date: 2000-01-01 (Wu-Wu, index 54)
         let baseDate = DateComponents(calendar: utcCal, year: 2000, month: 1, day: 1).date!
         
-        // Extract Y/M/D from input date using the provided calendar (User's local time context)
-        let comps = calendar.dateComponents([.year, .month, .day, .hour], from: date)
+        // Extract Y/M/D from input date using the GREGORIAN calendar (User's local time context)
+        let comps = gregCal.dateComponents([.year, .month, .day, .hour], from: date)
         let currentYear = comps.year!
         let currentMonth = comps.month!
         let currentDay = comps.day!
         let currentHour = comps.hour!
         
         // Construct Target Date as 20xx-xx-xx 00:00:00 UTC
-        // This effectively treats the local date as a UTC date for day-counting purposes.
         let targetComponents = DateComponents(year: currentYear, month: currentMonth, day: currentDay)
         let targetDate = utcCal.date(from: targetComponents)!
         
@@ -132,4 +143,3 @@ public extension Date {
         return date.addingTimeInterval(totalCorrectionMin * 60.0)
     }
 }
-
