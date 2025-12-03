@@ -1,7 +1,6 @@
 # SwiftGanZhi
 
 [![Swift](https://img.shields.io/badge/Swift-5.7+-orange.svg)](https://swift.org)
-[![Platform](https://img.shields.io/badge/Platform-iOS%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)]()
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 A high-precision Chinese Gan-Zhi (Stem-Branch) calendar library for Swift.
@@ -12,10 +11,10 @@ It features **astronomical-grade accuracy** for solar terms calculation (based o
 
 ## ✨ Features
 
-*   **Pure Swift Extension**: Directly extends `Date` for seamless integration.
-*   **High Precision**: Uses simplified VSOP87/Meeus algorithms to calculate Apparent Solar Longitude for precise solar term determination.
-*   **True Solar Time**: Automatically corrects time based on longitude and Equation of Time (EoT).
-*   **Scientific Day Calculation**: Uses Julian Day algorithms to eliminate timezone and leap year drifts.
+* **Pure Swift Extension**: Directly extends `Date` for seamless integration.
+* **High Precision**: Uses simplified VSOP87/Meeus algorithms to calculate Apparent Solar Longitude for precise solar term determination.
+* **True Solar Time**: Automatically corrects time based on longitude and Equation of Time (EoT).
+* **Scientific Day Calculation**: Uses Julian Day algorithms to eliminate timezone and leap year drifts.
 
 ## 📦 Installation
 
@@ -65,6 +64,23 @@ let pillars = date.fourPillars(at: urumqi)
 print(pillars.hour.character)
 // Original 10:00 is Si Hour (Snake)
 // Corrected time is approx 07:50, which is Chen Hour (Dragon)
+```
+
+### 3. Ten Gods Analysis
+
+Calculate the Ten Gods (Shi Shen) relationships for Stems and Branches (based on Hidden Stems/Main Qi):
+
+```swift
+let pillars = date.fourPillars()
+
+// Get Ten God for a Stem
+let stemTenGod = pillars.tenGod(for: pillars.year.stem)
+print(stemTenGod) // e.g., .robWealth
+
+// Get Ten God for a Branch (Calculated based on Hidden Stem's Main Qi)
+// e.g., Zi (Yang Water) contains Gui (Yin Water). For Jia Wood Day Master, it is Direct Resource.
+let branchTenGod = pillars.tenGod(for: pillars.month.branch)
+print(branchTenGod) // e.g., .directResource
 ```
 
 ## 📄 License

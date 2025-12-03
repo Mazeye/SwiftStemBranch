@@ -1,7 +1,6 @@
 # SwiftGanZhi (干支)
 
 [![Swift](https://img.shields.io/badge/Swift-5.7+-orange.svg)](https://swift.org)
-[![Platform](https://img.shields.io/badge/Platform-iOS%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)]()
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 一个纯 Swift 编写的高精度干支（八字）历法库。
@@ -12,10 +11,10 @@
 
 ## ✨ 核心特性
 
-*   **纯 Swift 扩展**：直接扩展 `Date` 类型，零依赖，无缝集成。
-*   **天文级精度**：内置简化版 VSOP87/Meeus 算法计算太阳视黄经，精确判定节气交接时刻。
-*   **真太阳时修正**：支持根据经度与均时差（Equation of Time）自动修正排盘时间。
-*   **科学的日柱计算**：使用儒略日（Julian Day）算法，消除时区和闰年造成的日期偏差。
+* **纯 Swift 扩展**：直接扩展 `Date` 类型，零依赖，无缝集成。
+* **天文级精度**：内置简化版 VSOP87/Meeus 算法计算太阳视黄经，精确判定节气交接时刻。
+* **真太阳时修正**：支持根据经度与均时差（Equation of Time）自动修正排盘时间。
+* **科学的日柱计算**：使用儒略日（Julian Day）算法，消除时区和闰年造成的日期偏差。
 
 ## 📦 安装
 
@@ -67,6 +66,23 @@ let pillars = date.fourPillars(at: urumqi)
 print(pillars.hour.character)
 // 原本 10:00 是巳时 (09:00-11:00)
 // 修正后约 07:50，变为辰时 (07:00-09:00)
+```
+
+### 3. 十神分析
+
+支持获取天干和地支（基于藏干本气）的十神关系：
+
+```swift
+let pillars = date.fourPillars()
+
+// 获取天干十神
+let stemTenGod = pillars.tenGod(for: pillars.year.stem)
+print(stemTenGod) // 例如: .robWealth (劫财)
+
+// 获取地支十神（自动基于藏干本气计算）
+// 例如：子水(阳) 藏干为癸水(阴)，对于甲木日主，为正印而非偏印
+let branchTenGod = pillars.tenGod(for: pillars.month.branch) 
+print(branchTenGod) // 例如: .directResource (正印)
 ```
 
 ## 📄 许可证
