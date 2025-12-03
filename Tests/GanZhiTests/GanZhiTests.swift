@@ -44,4 +44,22 @@ final class GanZhiTests: XCTestCase {
         XCTAssertEqual(standardPillars.hour.branch.character, "巳")
         XCTAssertEqual(trueSolarPillars.hour.branch.character, "辰")
     }
+    
+    func testFiveElementsDistribution() {
+        // Test case: 2008-08-08 20:08
+        // Year: 戊子 (Earth, Water)
+        // Month: 庚申 (Metal, Metal)
+        // Day: 庚辰 (Metal, Earth)
+        // Hour: 丙戌 (Fire, Earth)
+        
+        let date = Date(year: 2008, month: 8, day: 8, hour: 20, minute: 8)!
+        let pillars = date.fourPillars()
+        let counts = pillars.fiveElementCounts
+        
+        XCTAssertEqual(counts[.earth], 3)
+        XCTAssertEqual(counts[.metal], 3)
+        XCTAssertEqual(counts[.water], 1)
+        XCTAssertEqual(counts[.fire], 1)
+        XCTAssertEqual(counts[.wood, default: 0], 0)
+    }
 }

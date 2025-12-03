@@ -19,5 +19,21 @@ public enum Stem: Int, CaseIterable, CyclicEnum {
         case .gui: return "癸"
         }
     }
+    
+    public var fiveElement: FiveElements {
+        switch self {
+        case .jia, .yi:      return .wood
+        case .bing, .ding:   return .fire
+        case .wu, .ji:       return .earth
+        case .geng, .xin:    return .metal
+        case .ren, .gui:     return .water
+        }
+    }
+    
+    public var yinYang: YinYang {
+        // Odd index is Yang, Even index is Yin (1-based rawValue)
+        // Jia(1) -> Yang, Yi(2) -> Yin, etc.
+        return self.rawValue % 2 != 0 ? .yang : .yin
+    }
 }
 

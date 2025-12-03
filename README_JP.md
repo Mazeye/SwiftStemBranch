@@ -1,7 +1,6 @@
 # SwiftGanZhi (干支)
 
 [![Swift](https://img.shields.io/badge/Swift-5.7+-orange.svg)](https://swift.org)
-[![Platform](https://img.shields.io/badge/Platform-iOS%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)]()
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 Swiftで書かれた高精度な干支（四柱推命）暦ライブラリです。
@@ -12,10 +11,10 @@ Swiftで書かれた高精度な干支（四柱推命）暦ライブラリです
 
 ## ✨ 主な機能
 
-*   **純粋なSwift拡張**：`Date` 型を直接拡張し、依存関係がなく、統合が容易です。
-*   **天文学的な精度**：簡略化されたVSOP87/Meeusアルゴリズムを内蔵し、太陽視黄経を計算することで、節入りの瞬間を正確に判定します。
-*   **真太陽時（True Solar Time）補正**：経度と均時差（Equation of Time）に基づいて、四柱推命に不可欠な時間補正を自動的に行います。
-*   **科学的な日柱計算**：ユリウス通日（Julian Day）アルゴリズムを使用し、タイムゾーンや閏年による日付のずれを排除します。
+* **純粋なSwift拡張**：`Date` 型を直接拡張し、依存関係がなく、統合が容易です。
+* **天文学的な精度**：簡略化されたVSOP87/Meeusアルゴリズムを内蔵し、太陽視黄経を計算することで、節入りの瞬間を正確に判定します。
+* **真太陽時（True Solar Time）補正**：経度と均時差（Equation of Time）に基づいて、四柱推命に不可欠な時間補正を自動的に行います。
+* **科学的な日柱計算**：ユリウス通日（Julian Day）アルゴリズムを使用し、タイムゾーンや閏年による日付のずれを排除します。
 
 ## 📦 インストール
 
@@ -65,6 +64,23 @@ let pillars = date.fourPillars(at: urumqi)
 print(pillars.hour.character)
 // 本来 10:00 は巳（み）の刻 (09:00-11:00)
 // 補正後は約 07:50 となり、辰（たつ）の刻 (07:00-09:00) になります
+```
+
+### 3. 通変星（十神）の分析
+
+天干および地支（蔵干の通根に基づく）の通変星関係を取得できます：
+
+```swift
+let pillars = date.fourPillars()
+
+// 天干の通変星を取得
+let stemTenGod = pillars.tenGod(for: pillars.year.stem)
+print(stemTenGod) // 例: .robWealth (劫財)
+
+// 地支の通変星を取得（蔵干の本気に自動的に基づく）
+// 例：子（陽水）の蔵干は癸（陰水）。甲木の日主に対しては、偏印ではなく正印となります。
+let branchTenGod = pillars.tenGod(for: pillars.month.branch)
+print(branchTenGod) // 例: .directResource (印綬)
 ```
 
 ## 📄 ライセンス
