@@ -74,13 +74,30 @@ print(pillars.hour.character)
 let pillars = date.fourPillars()
 
 // 天干の通変星を取得
-let stemTenGod = pillars.tenGod(for: pillars.year.stem)
+// 注意: ラッパーから元の天干を取得するには .value を使用してください
+let stemTenGod = pillars.tenGod(for: pillars.year.stem.value)
 print(stemTenGod) // 例: .robWealth (劫財)
 
 // 地支の通変星を取得（蔵干の本気に自動的に基づく）
 // 例：子（陽水）の蔵干は癸（陰水）。甲木の日主に対しては、偏印ではなく正印となります。
-let branchTenGod = pillars.tenGod(for: pillars.month.branch)
+let branchTenGod = pillars.tenGod(for: pillars.month.branch.value)
 print(branchTenGod) // 例: .directResource (印綬)
+```
+
+### 4. 通根と透干の分析
+
+天干が地支に根を持っているか（通根）、および地支の蔵干が天干に現れているか（透干）を分析します。
+
+```swift
+// 通根を確認 (Stem -> Branches)
+// この天干を蔵干として含む地支のリストを返します
+let roots = pillars.year.stem.stemRoots
+print(roots.map { $0.character }) // 例: ["辰", "未"]
+
+// 透干を確認 (Branch -> Stems)
+// この地支の蔵干のうち、四柱の天干に現れているものを返します
+let revealed = pillars.month.branch.branchRevealedStems
+print(revealed.map { $0.character }) // 例: ["乙"]
 ```
 
 ## 📄 ライセンス
