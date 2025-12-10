@@ -76,13 +76,30 @@ print(pillars.hour.character)
 let pillars = date.fourPillars()
 
 // 获取天干十神
-let stemTenGod = pillars.tenGod(for: pillars.year.stem)
+// 注意：需使用 .value 从包装器中获取原始天干
+let stemTenGod = pillars.tenGod(for: pillars.year.stem.value)
 print(stemTenGod) // 例如: .robWealth (劫财)
 
 // 获取地支十神（自动基于藏干本气计算）
 // 例如：子水(阳) 藏干为癸水(阴)，对于甲木日主，为正印而非偏印
-let branchTenGod = pillars.tenGod(for: pillars.month.branch) 
+let branchTenGod = pillars.tenGod(for: pillars.month.branch.value) 
 print(branchTenGod) // 例如: .directResource (正印)
+```
+
+### 4. 通根与透干分析
+
+分析天干在地支中的根气，以及地支藏干在天干的透出情况。
+
+```swift
+// 获取天干通根 (Stem -> Branches)
+// 返回四柱地支中，藏干包含该天干的所有地支
+let roots = pillars.year.stem.stemRoots
+print(roots.map { $0.character }) // 例如: ["辰", "未"]
+
+// 获取地支透干 (Branch -> Stems)
+// 返回该地支的藏干中，透出到四柱天干的所有干
+let revealed = pillars.month.branch.branchRevealedStems
+print(revealed.map { $0.character }) // 例如: ["乙"]
 ```
 
 ## 📄 许可证

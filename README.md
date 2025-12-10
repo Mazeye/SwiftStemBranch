@@ -74,13 +74,30 @@ Calculate the Ten Gods (Shi Shen) relationships for Stems and Branches (based on
 let pillars = date.fourPillars()
 
 // Get Ten God for a Stem
-let stemTenGod = pillars.tenGod(for: pillars.year.stem)
+// Note: Use .value to get the raw Stem from the wrapper
+let stemTenGod = pillars.tenGod(for: pillars.year.stem.value)
 print(stemTenGod) // e.g., .robWealth
 
 // Get Ten God for a Branch (Calculated based on Hidden Stem's Main Qi)
 // e.g., Zi (Yang Water) contains Gui (Yin Water). For Jia Wood Day Master, it is Direct Resource.
-let branchTenGod = pillars.tenGod(for: pillars.month.branch)
+let branchTenGod = pillars.tenGod(for: pillars.month.branch.value)
 print(branchTenGod) // e.g., .directResource
+```
+
+### 4. Rooting and Revealing Analysis (通根 & 透干)
+
+Analyze the strength and relationships between Stems and Branches.
+
+```swift
+// Check Rooting (Stem -> Branches)
+// Returns which Branches contain this Stem in their hidden stems
+let roots = pillars.year.stem.stemRoots
+print(roots.map { $0.character }) // e.g. ["辰", "未"]
+
+// Check Revealing (Branch -> Stems)
+// Returns which Hidden Stems of this Branch appear in the Four Pillars' Stems
+let revealed = pillars.month.branch.branchRevealedStems
+print(revealed.map { $0.character }) // e.g. ["乙"]
 ```
 
 ## 📄 License
