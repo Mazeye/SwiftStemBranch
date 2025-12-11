@@ -84,20 +84,28 @@ let branchTenGod = pillars.tenGod(for: pillars.month.branch.value)
 print(branchTenGod) // e.g., .directResource
 ```
 
-### 4. Rooting and Revealing Analysis (通根 & 透干)
+### 4. Hidden Stems Analysis (Cang Gan)
 
-Analyze the strength and relationships between Stems and Branches.
+Analyze the hidden stems within a branch, including Main Qi, Middle Qi, and Residual Qi, along with their Ten Gods.
 
 ```swift
-// Check Rooting (Stem -> Branches)
-// Returns which Branches contain this Stem in their hidden stems
-let roots = pillars.year.stem.stemRoots
-print(roots.map { $0.character }) // e.g. ["辰", "未"]
+let pillars = date.fourPillars()
 
-// Check Revealing (Branch -> Stems)
-// Returns which Hidden Stems of this Branch appear in the Four Pillars' Stems
-let revealed = pillars.month.branch.branchRevealedStems
-print(revealed.map { $0.character }) // e.g. ["乙"]
+// Get hidden stems and their Ten Gods
+let hidden = pillars.hiddenTenGods(for: pillars.month.branch)
+
+// Main Qi (Ben Qi)
+print("Main Qi: \(hidden.benQi.stem.character) [\(hidden.benQi.tenGod.rawValue)]")
+
+// Middle Qi (Zhong Qi)
+if let zhong = hidden.zhongQi {
+    print("Middle Qi: \(zhong.stem.character) [\(zhong.tenGod.rawValue)]")
+}
+
+// Residual Qi (Yu Qi)
+if let yu = hidden.yuQi {
+    print("Residual Qi: \(yu.stem.character) [\(yu.tenGod.rawValue)]")
+}
 ```
 
 ## 📄 License

@@ -1,13 +1,5 @@
 import Foundation
 
-public protocol Rooting {
-    var stemRoots: [Branch] { get }
-}
-
-public protocol Revealing {
-    var branchRevealedStems: [Stem] { get }
-}
-
 /// Represents the Four Pillars of Destiny (BaZi).
 /// Contains the Stem-Branch pairs for Year, Month, Day, and Hour.
 public struct FourPillars {
@@ -25,10 +17,10 @@ public struct FourPillars {
     }
     
     // Accessors returning Contextual Pillar wrappers
-    public var year: Pillar { Pillar(value: _year, context: self) }
-    public var month: Pillar { Pillar(value: _month, context: self) }
-    public var day: Pillar { Pillar(value: _day, context: self) }
-    public var hour: Pillar { Pillar(value: _hour, context: self) }
+    public var year: Pillar { Pillar(value: _year) }
+    public var month: Pillar { Pillar(value: _month) }
+    public var day: Pillar { Pillar(value: _day) }
+    public var hour: Pillar { Pillar(value: _hour) }
     
     public var description: String {
         return "\(_year.character)年 \(_month.character)月 \(_day.character)日 \(_hour.character)时"
@@ -85,74 +77,55 @@ public struct FourPillars {
         return TenGods.calculate(dayMaster: _day.stem, branch: branch)
     }
     
-    // Helper accessors for internal use
-    private var allStems: [Stem] { [_year.stem, _month.stem, _day.stem, _hour.stem] }
-    private var allBranches: [Branch] { [_year.branch, _month.branch, _day.branch, _hour.branch] }
+    // MARK: - Hidden Stems Ten Gods
+    
+    /// Contains Ten God information for all Hidden Stems in a Branch.
+    public struct BranchTenGods {
+        /// The Ten God corresponding to the Main Qi (Ben Qi).
+        public let benQi: (stem: Stem, tenGod: TenGods)
+        
+        /// The Ten God corresponding to the Middle Qi (Zhong Qi), if present.
+        public let zhongQi: (stem: Stem, tenGod: TenGods)?
+        
+        /// The Ten God corresponding to the Residual Qi (Yu Qi), if present.
+        public let yuQi: (stem: Stem, tenGod: TenGods)?
+    }
+    
+    /// Calculates Ten Gods for all Hidden Stems (Ben Qi, Zhong Qi, Yu Qi) of a given Branch.
+    public func hiddenTenGods(for branch: Branch) -> BranchTenGods {
+        let ben = (branch.benQi, tenGod(for: branch.benQi))
+        
+        var zhong: (Stem, TenGods)? = nil
+        if let z = branch.zhongQi {
+            zhong = (z, tenGod(for: z))
+        }
+        
+        var yu: (Stem, TenGods)? = nil
+        if let y = branch.yuQi {
+            yu = (y, tenGod(for: y))
+        }
+        
+        return BranchTenGods(benQi: ben, zhongQi: zhong, yuQi: yu)
+    }
     
     // MARK: - Contextual Types
     
     /// A wrapper for StemBranch that provides context-aware Stem and Branch accessors.
     public struct Pillar {
         public let value: StemBranch
-        private let context: FourPillars
         
-        fileprivate init(value: StemBranch, context: FourPillars) {
+        public init(value: StemBranch) {
             self.value = value
-            self.context = context
         }
         
-        public var stem: StemWrapper {
-            StemWrapper(value: value.stem, allBranches: context.allBranches)
+        public var stem: Stem {
+            value.stem
         }
         
-        public var branch: BranchWrapper {
-            BranchWrapper(value: value.branch, allStems: context.allStems)
+        public var branch: Branch {
+            value.branch
         }
         
         public var character: String { value.character }
-    }
-    
-    /// A wrapper for Stem that includes Rooting information.
-    public struct StemWrapper: Rooting {
-        public let value: Stem
-        private let allBranches: [Branch]
-        
-        fileprivate init(value: Stem, allBranches: [Branch]) {
-            self.value = value
-            self.allBranches = allBranches
-        }
-        
-        public var stemRoots: [Branch] {
-            allBranches.filter { $0.hiddenStems.contains(value) }
-        }
-        
-        // Forwarding properties
-        public var character: String { value.character }
-        public var fiveElement: FiveElements { value.fiveElement }
-        public var yinYang: YinYang { value.yinYang }
-        public var index: Int { value.index }
-    }
-    
-    /// A wrapper for Branch that includes Revealing information.
-    public struct BranchWrapper: Revealing {
-        public let value: Branch
-        private let allStems: [Stem]
-        
-        fileprivate init(value: Branch, allStems: [Stem]) {
-            self.value = value
-            self.allStems = allStems
-        }
-        
-        public var branchRevealedStems: [Stem] {
-            value.hiddenStems.filter { allStems.contains($0) }
-        }
-        
-        // Forwarding properties
-        public var character: String { value.character }
-        public var fiveElement: FiveElements { value.fiveElement }
-        public var yinYang: YinYang { value.yinYang }
-        public var hiddenStems: [Stem] { value.hiddenStems }
-        public var mainQi: Stem { value.mainQi }
-        public var index: Int { value.index }
     }
 }

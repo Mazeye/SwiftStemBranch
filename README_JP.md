@@ -84,20 +84,28 @@ let branchTenGod = pillars.tenGod(for: pillars.month.branch.value)
 print(branchTenGod) // 例: .directResource (印綬)
 ```
 
-### 4. 通根と透干の分析
+### 4. 蔵干分析（本気、中気、余気）
 
-天干が地支に根を持っているか（通根）、および地支の蔵干が天干に現れているか（透干）を分析します。
+地支に含まれる蔵干（本気、中気、余気）の詳細と、それに対応する通変星を取得できます。
 
 ```swift
-// 通根を確認 (Stem -> Branches)
-// この天干を蔵干として含む地支のリストを返します
-let roots = pillars.year.stem.stemRoots
-print(roots.map { $0.character }) // 例: ["辰", "未"]
+let pillars = date.fourPillars()
 
-// 透干を確認 (Branch -> Stems)
-// この地支の蔵干のうち、四柱の天干に現れているものを返します
-let revealed = pillars.month.branch.branchRevealedStems
-print(revealed.map { $0.character }) // 例: ["乙"]
+// 地支の蔵干と通変星を取得
+let hidden = pillars.hiddenTenGods(for: pillars.month.branch)
+
+// 本気
+print("本気: \(hidden.benQi.stem.character) [\(hidden.benQi.tenGod.rawValue)]")
+
+// 中気
+if let zhong = hidden.zhongQi {
+    print("中気: \(zhong.stem.character) [\(zhong.tenGod.rawValue)]")
+}
+
+// 余気
+if let yu = hidden.yuQi {
+    print("余気: \(yu.stem.character) [\(yu.tenGod.rawValue)]")
+}
 ```
 
 ## 📄 ライセンス

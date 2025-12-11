@@ -38,8 +38,8 @@ print("详细属性:")
 
 func printPillar(_ name: String, _ pillar: FourPillars.Pillar) {
     // Access underlying value for TenGod calculation which expects raw Stem/Branch
-    let stemTenGod = pillars.tenGod(for: pillar.stem.value).rawValue
-    let branchTenGod = pillars.tenGod(for: pillar.branch.value).rawValue
+    let stemTenGod = pillars.tenGod(for: pillar.stem).rawValue
+    let branchTenGod = pillars.tenGod(for: pillar.branch).rawValue
     
     // Example: 甲(阳木)[比肩]
     let stemInfo = "\(pillar.stem.character)(\(pillar.stem.yinYang.rawValue)\(pillar.stem.fiveElement.rawValue))[\(stemTenGod)]"
@@ -71,24 +71,32 @@ for yy in YinYang.allCases {
 }
 print("--------------------------------------------------")
 
-print("通根与透干关系:")
+print("--------------------------------------------------")
+print("地支藏干 (本气/中气/余气):")
 
 let pillarsList = [pillars.year, pillars.month, pillars.day, pillars.hour]
 let positions = ["年", "月", "日", "时"]
 
-print("\n天干通根 (天干 -> 地支):")
-for (index, pillar) in pillarsList.enumerated() {
-    let stem = pillar.stem
-    let roots = stem.stemRoots
-    let rootStr = roots.isEmpty ? "[]" : "[" + roots.map { $0.character }.joined(separator: ", ") + "]"
-    print("\(positions[index])干 [\(stem.character)]: \(rootStr)")
-}
-
-print("\n地支透干 (地支 -> 天干):")
 for (index, pillar) in pillarsList.enumerated() {
     let branch = pillar.branch
-    let revealed = branch.branchRevealedStems
-    let revealedStr = revealed.isEmpty ? "[]" : "[" + revealed.map { $0.character }.joined(separator: ", ") + "]"
-    print("\(positions[index])支 [\(branch.character)]: \(revealedStr)")
+    let hidden = pillars.hiddenTenGods(for: branch)
+    
+    var details: [String] = []
+    
+    // Ben Qi
+    let ben = hidden.benQi
+    details.append("本气: \(ben.stem.character)[\(ben.tenGod.rawValue)]")
+    
+    // Zhong Qi
+    if let zhong = hidden.zhongQi {
+        details.append("中气: \(zhong.stem.character)[\(zhong.tenGod.rawValue)]")
+    }
+    
+    // Yu Qi
+    if let yu = hidden.yuQi {
+        details.append("余气: \(yu.stem.character)[\(yu.tenGod.rawValue)]")
+    }
+    
+    print("\(positions[index])支 [\(branch.character)]: \(details.joined(separator: ", "))")
 }
 print("--------------------------------------------------")

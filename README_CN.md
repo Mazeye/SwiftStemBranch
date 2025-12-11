@@ -86,20 +86,28 @@ let branchTenGod = pillars.tenGod(for: pillars.month.branch.value)
 print(branchTenGod) // 例如: .directResource (正印)
 ```
 
-### 4. 通根与透干分析
+### 4. 藏干分析（本气、中气、余气）
 
-分析天干在地支中的根气，以及地支藏干在天干的透出情况。
+支持获取地支的藏干详情及其对应的十神。
 
 ```swift
-// 获取天干通根 (Stem -> Branches)
-// 返回四柱地支中，藏干包含该天干的所有地支
-let roots = pillars.year.stem.stemRoots
-print(roots.map { $0.character }) // 例如: ["辰", "未"]
+let pillars = date.fourPillars()
 
-// 获取地支透干 (Branch -> Stems)
-// 返回该地支的藏干中，透出到四柱天干的所有干
-let revealed = pillars.month.branch.branchRevealedStems
-print(revealed.map { $0.character }) // 例如: ["乙"]
+// 获取地支藏干及其十神
+let hidden = pillars.hiddenTenGods(for: pillars.month.branch)
+
+// 本气 (Stem, TenGods)
+print("本气: \(hidden.benQi.stem.character) [\(hidden.benQi.tenGod.rawValue)]")
+
+// 中气 (Optional<(Stem, TenGods)>)
+if let zhong = hidden.zhongQi {
+    print("中气: \(zhong.stem.character) [\(zhong.tenGod.rawValue)]")
+}
+
+// 余气 (Optional<(Stem, TenGods)>)
+if let yu = hidden.yuQi {
+    print("余气: \(yu.stem.character) [\(yu.tenGod.rawValue)]")
+}
 ```
 
 ## 📄 许可证
