@@ -108,6 +108,35 @@ if let yu = hidden.yuQi {
 }
 ```
 
+### 5. Pattern Determination (GeJu)
+
+Automatically determine the pattern of the BaZi chart based on standard rules (Month Branch priority, Transpired Stems, etc.).
+
+```swift
+let pattern = pillars.determinePattern()
+
+print("Pattern: \(pattern.description)")      // e.g., "Direct Resource Pattern" (正印格)
+print("Method: \(pattern.method.rawValue)")   // e.g., "Month Branch Main Qi"
+print("Ten God: \(pattern.tenGod.rawValue)")  // e.g., "Direct Resource"
+```
+
+### 6. Twelve Life Stages (Shi Er Chang Sheng)
+
+Calculate the life stage (strength/energy) of a Stem relative to a Branch.
+
+```swift
+let dayStem = pillars.day.stem
+let monthBranch = pillars.month.branch
+
+// Get specific life stage
+let stage = dayStem.lifeStage(in: monthBranch)
+print("Life Stage: \(stage.description)") // e.g., "Lin Guan" (临官)
+
+// Get full table of life stages for the Stem
+let allStages = dayStem.lifeStages
+print(allStages[.zi]) // e.g., "Bath" (沐浴)
+```
+
 ## 📄 License
 
 MIT License. See [LICENSE](LICENSE) for details.

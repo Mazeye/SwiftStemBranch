@@ -110,6 +110,35 @@ if let yu = hidden.yuQi {
 }
 ```
 
+### 5. 八字格局判定 (GeJu)
+
+根据传统规则（月令为重、透干优先、建禄/月刃/羊刃特殊处理等）自动判定八字格局。
+
+```swift
+let pattern = pillars.determinePattern()
+
+print("格局: \(pattern.description)")      // 例如: "正印格"
+print("判定依据: \(pattern.method.rawValue)") // 例如: "月支本气"
+print("核心十神: \(pattern.tenGod.rawValue)")  // 例如: "正印"
+```
+
+### 6. 十二长生状态 (Shi Er Chang Sheng)
+
+计算天干相对于地支的十二长生状态（旺衰）。
+
+```swift
+let dayStem = pillars.day.stem
+let monthBranch = pillars.month.branch
+
+// 获取特定地支下的长生状态
+let stage = dayStem.lifeStage(in: monthBranch)
+print("长生状态: \(stage.description)") // 例如: "临官"
+
+// 获取该天干的完整十二长生表
+let allStages = dayStem.lifeStages
+print(allStages[.zi]) // 例如: "沐浴"
+```
+
 ## 📄 许可证
 
 本项目基于 MIT 许可证开源。详见 [LICENSE](LICENSE) ファイル。

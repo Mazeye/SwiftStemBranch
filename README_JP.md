@@ -108,6 +108,35 @@ if let yu = hidden.yuQi {
 }
 ```
 
+### 5. 格局判定 (GeJu)
+
+標準的な規則（月支優先、透干優先、建禄/羊刃などの特殊処理）に基づいて、八字の格局を自動的に判定します。
+
+```swift
+let pattern = pillars.determinePattern()
+
+print("格局: \(pattern.description)")      // 例: "正印格"
+print("判定根拠: \(pattern.method.rawValue)") // 例: "月支本気"
+print("中心通変星: \(pattern.tenGod.rawValue)")  // 例: "正印"
+```
+
+### 6. 十二運 (Twelve Life Stages)
+
+天干の地支に対する強さ（十二運）を計算します。
+
+```swift
+let dayStem = pillars.day.stem
+let monthBranch = pillars.month.branch
+
+// 特定の地支における十二運を取得
+let stage = dayStem.lifeStage(in: monthBranch)
+print("十二運: \(stage.description)") // 例: "臨官"
+
+// その天干の十二運表全体を取得
+let allStages = dayStem.lifeStages
+print(allStages[.zi]) // 例: "沐浴"
+```
+
 ## 📄 ライセンス
 
 本プロジェクトは MIT ライセンスの下で公開されています。詳細は [LICENSE](LICENSE) ファイルをご覧ください。
