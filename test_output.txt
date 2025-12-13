@@ -1,0 +1,66 @@
+Building for debugging...
+[0/5] Write swift-version--58304C5D6DBC2206.txt
+[2/7] Compiling GanZhiTests GanZhiTests.swift
+[3/7] Compiling GanZhiTests ShenShaTests.swift
+[4/7] Compiling GanZhiTests PatternTests.swift
+[5/7] Emitting module GanZhiTests
+[6/9] Emitting module GanZhiPackageTests
+[7/9] Compiling GanZhiPackageTests runner.swift
+[7/9] Write Objects.LinkFileList
+[8/9] Linking GanZhiPackageTests
+Build complete! (8.88s)
+Test Suite 'All tests' started at 2025-12-12 22:01:44.528.
+Test Suite 'GanZhiPackageTests.xctest' started at 2025-12-12 22:01:44.529.
+Test Suite 'GanZhiTests' started at 2025-12-12 22:01:44.529.
+Test Case '-[GanZhiTests.GanZhiTests testFiveElementsDistribution]' started.
+Test Case '-[GanZhiTests.GanZhiTests testFiveElementsDistribution]' passed (0.002 seconds).
+Test Case '-[GanZhiTests.GanZhiTests testRealWorldBazi]' started.
+Test Case '-[GanZhiTests.GanZhiTests testRealWorldBazi]' passed (0.000 seconds).
+Test Case '-[GanZhiTests.GanZhiTests testSolarLongitude]' started.
+Test Case '-[GanZhiTests.GanZhiTests testSolarLongitude]' passed (0.000 seconds).
+Test Case '-[GanZhiTests.GanZhiTests testStemBranchCycle]' started.
+Test Case '-[GanZhiTests.GanZhiTests testStemBranchCycle]' passed (0.000 seconds).
+Test Case '-[GanZhiTests.GanZhiTests testTrueSolarTimeAdjustment]' started.
+Test Case '-[GanZhiTests.GanZhiTests testTrueSolarTimeAdjustment]' passed (0.000 seconds).
+Test Suite 'GanZhiTests' passed at 2025-12-12 22:01:44.531.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.002 (0.003) seconds
+Test Suite 'PatternTests' started at 2025-12-12 22:01:44.531.
+Test Case '-[GanZhiTests.PatternTests testJianLuGe]' started.
+Test Case '-[GanZhiTests.PatternTests testJianLuGe]' passed (0.000 seconds).
+Test Case '-[GanZhiTests.PatternTests testNoTranspired_MainQi]' started.
+Test Case '-[GanZhiTests.PatternTests testNoTranspired_MainQi]' passed (0.000 seconds).
+Test Case '-[GanZhiTests.PatternTests testTranspiredMonthStem]' started.
+Test Case '-[GanZhiTests.PatternTests testTranspiredMonthStem]' passed (0.000 seconds).
+Test Case '-[GanZhiTests.PatternTests testTranspiredPriorityOverFriend]' started.
+Test Case '-[GanZhiTests.PatternTests testTranspiredPriorityOverFriend]' passed (0.000 seconds).
+Test Case '-[GanZhiTests.PatternTests testTranspiredYearStem]' started.
+Test Case '-[GanZhiTests.PatternTests testTranspiredYearStem]' passed (0.000 seconds).
+Test Case '-[GanZhiTests.PatternTests testYangRenGe_YangStem]' started.
+Test Case '-[GanZhiTests.PatternTests testYangRenGe_YangStem]' passed (0.000 seconds).
+Test Case '-[GanZhiTests.PatternTests testYueRenGe_YinStem]' started.
+Test Case '-[GanZhiTests.PatternTests testYueRenGe_YinStem]' passed (0.000 seconds).
+Test Suite 'PatternTests' passed at 2025-12-12 22:01:44.532.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+Test Suite 'ShenShaTests' started at 2025-12-12 22:01:44.532.
+Test Case '-[GanZhiTests.ShenShaTests testKongWang]' started.
+Test Case '-[GanZhiTests.ShenShaTests testKongWang]' passed (0.000 seconds).
+Test Case '-[GanZhiTests.ShenShaTests testLuShen]' started.
+Test Case '-[GanZhiTests.ShenShaTests testLuShen]' passed (0.000 seconds).
+Test Case '-[GanZhiTests.ShenShaTests testTaoHua]' started.
+Test Case '-[GanZhiTests.ShenShaTests testTaoHua]' passed (0.000 seconds).
+Test Case '-[GanZhiTests.ShenShaTests testTianYiGuiRen]' started.
+Test Case '-[GanZhiTests.ShenShaTests testTianYiGuiRen]' passed (0.000 seconds).
+Test Case '-[GanZhiTests.ShenShaTests testYangRen]' started.
+Test Case '-[GanZhiTests.ShenShaTests testYangRen]' passed (0.000 seconds).
+Test Case '-[GanZhiTests.ShenShaTests testYiMa]' started.
+Test Case '-[GanZhiTests.ShenShaTests testYiMa]' passed (0.000 seconds).
+Test Suite 'ShenShaTests' passed at 2025-12-12 22:01:44.533.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+Test Suite 'GanZhiPackageTests.xctest' passed at 2025-12-12 22:01:44.533.
+	 Executed 18 tests, with 0 failures (0 unexpected) in 0.003 (0.004) seconds
+Test Suite 'All tests' passed at 2025-12-12 22:01:44.533.
+	 Executed 18 tests, with 0 failures (0 unexpected) in 0.003 (0.005) seconds
+◇ Test run started.
+↳ Testing Library Version: 1085
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

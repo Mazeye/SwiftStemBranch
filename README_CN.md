@@ -122,22 +122,25 @@ print("判定依据: \(pattern.method.rawValue)") // 例如: "月支本气"
 print("核心十神: \(pattern.tenGod.rawValue)")  // 例如: "正印"
 ```
 
-### 6. 十二长生状态 (Shi Er Chang Sheng)
+### 7. 神煞分析 (Shen Sha)
 
-计算天干相对于地支的十二长生状态（旺衰）。
+基于十二长生状态（Life Stages）和五行关系，计算地支中包含的常用神煞。
 
 ```swift
-let dayStem = pillars.day.stem
-let monthBranch = pillars.month.branch
+let branch = pillars.month.branch
+let stars = pillars.shenSha(for: branch)
 
-// 获取特定地支下的长生状态
-let stage = dayStem.lifeStage(in: monthBranch)
-print("长生状态: \(stage.description)") // 例如: "临官"
-
-// 获取该天干的完整十二长生表
-let allStages = dayStem.lifeStages
-print(allStages[.zi]) // 例如: "沐浴"
+if !stars.isEmpty {
+    print("神煞: \(stars.map { $0.rawValue }.joined(separator: " "))")
+    // 例如: "神煞: 天乙贵人 驿马"
+}
 ```
+
+支持的神煞包括：
+*   **贵人**: 天乙、太极、文昌、天德、月德
+*   **性格**: 驿马、桃花、华盖、将星、金神
+*   **禄命**: 禄神（基于临官）、金舆、羊刃（基于帝旺/冠带）、飞刃
+*   **凶煞**: 空亡、元辰、劫煞、亡神、孤辰、寡宿
 
 ## 📄 许可证
 

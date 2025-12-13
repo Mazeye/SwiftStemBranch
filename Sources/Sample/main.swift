@@ -110,6 +110,13 @@ for (index, pillar) in pillarsList.enumerated() {
         info += " 余气: \(yu.stem.character)(\(yu.tenGod.rawValue))"
     }
     
+    // Shen Sha
+    let stars = pillars.shenSha(for: branch)
+    if !stars.isEmpty {
+        let starsStr = stars.map { $0.rawValue }.joined(separator: " ")
+        info += " 神煞: \(starsStr)"
+    }
+    
     print("\(positions[index])支 [\(branch.character)]: \(info)")
 }
 
