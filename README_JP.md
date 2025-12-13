@@ -120,22 +120,37 @@ print("判定根拠: \(pattern.method.rawValue)") // 例: "月支本気"
 print("中心通変星: \(pattern.tenGod.rawValue)")  // 例: "正印"
 ```
 
-### 6. 十二運 (Twelve Life Stages)
+### 7. 神煞分析 (Shen Sha)
 
-天干の地支に対する強さ（十二運）を計算します。
+十二運と五行関係に基づいて、地支に含まれる一般的な神煞（吉凶星）を分析します。
 
 ```swift
-let dayStem = pillars.day.stem
-let monthBranch = pillars.month.branch
+let branch = pillars.month.branch
+let stars = pillars.shenSha(for: branch)
 
-// 特定の地支における十二運を取得
-let stage = dayStem.lifeStage(in: monthBranch)
-print("十二運: \(stage.description)") // 例: "臨官"
-
-// その天干の十二運表全体を取得
-let allStages = dayStem.lifeStages
-print(allStages[.zi]) // 例: "沐浴"
+if !stars.isEmpty {
+    // .name を使用してローカライズされた名前を取得
+    print("神煞: \(stars.map { $0.name }.joined(separator: " "))")
+    // 例: "神煞: 天乙貴人 駅馬" (日本語モード)
+}
 ```
+
+### 8. 多言語対応 (i18n)
+
+簡体字中国語（デフォルト）、繁体字中国語、日本語、英語をサポートしています。
+
+```swift
+// 言語を切り替える
+GanZhiConfig.language = .japanese
+
+let stem = Stem.jia
+print(stem.character) // 出力: "甲"
+
+let tenGod = TenGods.friend
+print(tenGod.name)    // 出力: "比肩"
+```
+
+注意：ローカライズされた文字列を取得するには、`.rawValue` の代わりに `.name` または `.description` プロパティを使用してください。
 
 ## 📄 ライセンス
 

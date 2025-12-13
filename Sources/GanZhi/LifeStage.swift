@@ -16,20 +16,69 @@ public enum LifeStage: Int, CaseIterable, CustomStringConvertible {
     case tai             // 胎   (Conception)
     case yang            // 养   (Nourishment)
     
+    /// Localized description based on GanZhiConfig.language.
     public var description: String {
-        switch self {
-        case .changSheng: return "长生"
-        case .muYu: return "沐浴"
-        case .guanDai: return "冠带"
-        case .linGuan: return "临官"
-        case .diWang: return "帝旺"
-        case .shuai: return "衰"
-        case .bing: return "病"
-        case .si: return "死"
-        case .mu: return "墓"
-        case .jue: return "绝"
-        case .tai: return "胎"
-        case .yang: return "养"
+        switch GanZhiConfig.language {
+        case .simplifiedChinese:
+            switch self {
+            case .changSheng: return "长生"
+            case .muYu: return "沐浴"
+            case .guanDai: return "冠带"
+            case .linGuan: return "临官"
+            case .diWang: return "帝旺"
+            case .shuai: return "衰"
+            case .bing: return "病"
+            case .si: return "死"
+            case .mu: return "墓"
+            case .jue: return "绝"
+            case .tai: return "胎"
+            case .yang: return "养"
+            }
+        case .traditionalChinese:
+            switch self {
+            case .changSheng: return "長生"
+            case .muYu: return "沐浴"
+            case .guanDai: return "冠帶"
+            case .linGuan: return "臨官"
+            case .diWang: return "帝旺"
+            case .shuai: return "衰"
+            case .bing: return "病"
+            case .si: return "死"
+            case .mu: return "墓"
+            case .jue: return "絕"
+            case .tai: return "胎"
+            case .yang: return "養"
+            }
+        case .japanese:
+            switch self {
+            case .changSheng: return "長生"
+            case .muYu: return "沐浴"
+            case .guanDai: return "冠帯"
+            case .linGuan: return "建禄"
+            case .diWang: return "帝旺"
+            case .shuai: return "衰"
+            case .bing: return "病"
+            case .si: return "死"
+            case .mu: return "墓"
+            case .jue: return "絶"
+            case .tai: return "胎"
+            case .yang: return "養"
+            }
+        case .english:
+            switch self {
+            case .changSheng: return "Birth"
+            case .muYu: return "Bath"
+            case .guanDai: return "Attire"
+            case .linGuan: return "Official"
+            case .diWang: return "Peak"
+            case .shuai: return "Decline"
+            case .bing: return "Sickness"
+            case .si: return "Death"
+            case .mu: return "Grave"
+            case .jue: return "Extinction"
+            case .tai: return "Conception"
+            case .yang: return "Nourishment"
+            }
         }
     }
 }

@@ -84,58 +84,37 @@ let branchTenGod = pillars.tenGod(for: pillars.month.branch.value)
 print(branchTenGod) // e.g., .directResource
 ```
 
-### 4. Hidden Stems Analysis (Cang Gan)
+### 7. Shen Sha Analysis (Stars/Gods)
 
-Analyze the hidden stems within a branch, including Main Qi, Middle Qi, and Residual Qi, along with their Ten Gods.
+Analyze common Shen Sha based on Life Stages and Five Elements relationships.
 
 ```swift
-let pillars = date.fourPillars()
+let branch = pillars.month.branch
+let stars = pillars.shenSha(for: branch)
 
-// Get hidden stems and their Ten Gods
-let hidden = pillars.hiddenTenGods(for: pillars.month.branch)
-
-// Main Qi (Ben Qi)
-print("Main Qi: \(hidden.benQi.stem.character) [\(hidden.benQi.tenGod.rawValue)]")
-
-// Middle Qi (Zhong Qi)
-if let zhong = hidden.zhongQi {
-    print("Middle Qi: \(zhong.stem.character) [\(zhong.tenGod.rawValue)]")
-}
-
-// Residual Qi (Yu Qi)
-if let yu = hidden.yuQi {
-    print("Residual Qi: \(yu.stem.character) [\(yu.tenGod.rawValue)]")
+if !stars.isEmpty {
+    // Use .name for localized output
+    print("Stars: \(stars.map { $0.name }.joined(separator: " "))")
+    // e.g., "Stars: Nobleman Traveling Horse" (in English mode)
 }
 ```
 
-### 5. Pattern Determination (GeJu)
+### 8. Internationalization (i18n)
 
-Automatically determine the pattern of the BaZi chart based on standard rules (Month Branch priority, Transpired Stems, etc.).
-
-```swift
-let pattern = pillars.determinePattern()
-
-print("Pattern: \(pattern.description)")      // e.g., "Direct Resource Pattern" (正印格)
-print("Method: \(pattern.method.rawValue)")   // e.g., "Month Branch Main Qi"
-print("Ten God: \(pattern.tenGod.rawValue)")  // e.g., "Direct Resource"
-```
-
-### 6. Twelve Life Stages (Shi Er Chang Sheng)
-
-Calculate the life stage (strength/energy) of a Stem relative to a Branch.
+Supports Simplified Chinese (Default), Traditional Chinese, Japanese, and English.
 
 ```swift
-let dayStem = pillars.day.stem
-let monthBranch = pillars.month.branch
+// Switch language
+GanZhiConfig.language = .english
 
-// Get specific life stage
-let stage = dayStem.lifeStage(in: monthBranch)
-print("Life Stage: \(stage.description)") // e.g., "Lin Guan" (临官)
+let stem = Stem.jia
+print(stem.character) // Output: "Jia"
 
-// Get full table of life stages for the Stem
-let allStages = dayStem.lifeStages
-print(allStages[.zi]) // e.g., "Bath" (沐浴)
+let tenGod = TenGods.friend
+print(tenGod.name)    // Output: "Friend"
 ```
+
+Note: Use `.name` or `.description` properties instead of `.rawValue` to get localized strings.
 
 ## 📄 License
 

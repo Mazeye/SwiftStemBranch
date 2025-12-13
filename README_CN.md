@@ -131,7 +131,8 @@ let branch = pillars.month.branch
 let stars = pillars.shenSha(for: branch)
 
 if !stars.isEmpty {
-    print("神煞: \(stars.map { $0.rawValue }.joined(separator: " "))")
+    // 使用 .name 获取本地化名称
+    print("神煞: \(stars.map { $0.name }.joined(separator: " "))")
     // 例如: "神煞: 天乙贵人 驿马"
 }
 ```
@@ -141,6 +142,24 @@ if !stars.isEmpty {
 *   **性格**: 驿马、桃花、华盖、将星、金神
 *   **禄命**: 禄神（基于临官）、金舆、羊刃（基于帝旺/冠带）、飞刃
 *   **凶煞**: 空亡、元辰、劫煞、亡神、孤辰、寡宿
+
+### 8. 多语言支持 (i18n)
+
+本库支持简体中文（默认）、繁体中文、日语和英语输出。
+
+```swift
+// 切换语言
+GanZhiConfig.language = .english // 或 .japanese, .traditionalChinese
+
+let stem = Stem.jia
+print(stem.character) // 输出: "Jia"
+
+let tenGod = TenGods.friend
+print(tenGod.name)    // 输出: "Friend"
+print(tenGod.rawValue) // 输出: "比肩" (保持兼容性，rawValue 始终为简中)
+```
+
+注意：为了支持多语言，请使用 `.name` 或 `.description` 属性替代 `.rawValue` 来获取显示文本。
 
 ## 📄 许可证
 

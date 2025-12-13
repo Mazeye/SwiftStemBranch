@@ -3,7 +3,7 @@ import Foundation
 /// Represents the BaZi Pattern (GeJu).
 public struct Pattern: CustomStringConvertible {
     /// The method used to determine the pattern.
-    public enum DeterminationMethod: String {
+    public enum DeterminationMethod: String, CustomStringConvertible {
         case jianLu = "建禄格" // Month Branch is Lin Guan
         case yueRen = "月刃格" // Yin Day Master Month Branch is Di Wang
         case yangRen = "羊刃格" // Yang Day Master Month Branch is Di Wang
@@ -12,17 +12,56 @@ public struct Pattern: CustomStringConvertible {
         case transpiredHourStem = "月支藏干透出时干"
         case monthBranchMainQi = "月支本气"
         case special = "特殊格局"
+        
+        public var description: String {
+            switch GanZhiConfig.language {
+            case .simplifiedChinese:
+                return self.rawValue
+            case .traditionalChinese:
+                switch self {
+                case .jianLu: return "建祿格"
+                case .yueRen: return "月刃格"
+                case .yangRen: return "羊刃格"
+                case .transpiredMonthStem: return "月支藏干透出月干"
+                case .transpiredYearStem: return "月支藏干透出年干"
+                case .transpiredHourStem: return "月支藏干透出時干"
+                case .monthBranchMainQi: return "月支本氣"
+                case .special: return "特殊格局"
+                }
+            case .japanese:
+                switch self {
+                case .jianLu: return "建禄格"
+                case .yueRen: return "月刃格"
+                case .yangRen: return "羊刃格"
+                case .transpiredMonthStem: return "月支蔵干の月干透出"
+                case .transpiredYearStem: return "月支蔵干の年干透出"
+                case .transpiredHourStem: return "月支蔵干の時干透出"
+                case .monthBranchMainQi: return "月支本気"
+                case .special: return "特殊格局"
+                }
+            case .english:
+                switch self {
+                case .jianLu: return "Jian Lu Pattern"
+                case .yueRen: return "Yue Ren Pattern"
+                case .yangRen: return "Yang Ren Pattern"
+                case .transpiredMonthStem: return "Month Branch Hidden Stem transpired in Month"
+                case .transpiredYearStem: return "Month Branch Hidden Stem transpired in Year"
+                case .transpiredHourStem: return "Month Branch Hidden Stem transpired in Hour"
+                case .monthBranchMainQi: return "Month Branch Main Qi"
+                case .special: return "Special Pattern"
+                }
+            }
+        }
     }
     
     /// The main Ten God forming the pattern.
-    /// For special patterns, this might be a dominant Ten God or nil/generic.
     public let tenGod: TenGods
     
     /// The method used to find this pattern.
     public let method: DeterminationMethod
     
     /// Custom name or explanation (useful for Special patterns).
-    /// If nil, the default name is tenGod + "格".
+    /// If nil, the default name is tenGod + "格" (localized).
     public let customName: String?
     
     public init(tenGod: TenGods, method: DeterminationMethod, customName: String? = nil) {
@@ -32,25 +71,33 @@ public struct Pattern: CustomStringConvertible {
     }
     
     public var description: String {
-        if let name = customName {
-            return name
+        // If it's a special pattern method (JianLu/YueRen/YangRen), ignore tenGod name and use Method description/name logic.
+        switch method {
+        case .jianLu, .yueRen, .yangRen:
+            // These methods have their own specific names which are essentially the pattern names.
+            // Using method.description is correct.
+            return method.description
+        default:
+            // Standard TenGod pattern
+            if let name = customName {
+                return name
+            }
+            
+            let suffix: String
+            switch GanZhiConfig.language {
+            case .simplifiedChinese, .traditionalChinese, .japanese:
+                suffix = "格"
+            case .english:
+                suffix = " Pattern"
+            }
+            
+            return tenGod.name + suffix
         }
-        return tenGod.rawValue + "格"
     }
 }
 
 extension FourPillars {
     
-    /// Determines the pattern (GeJu) of the BaZi chart based on standard rules.
-    ///
-    /// Rules:
-    /// 1. **Special Priority**: Check for Jian Lu (Lin Guan) and Yue Ren (Di Wang) first.
-    ///    - If Month Branch is Day Master's Lin Guan -> Jian Lu Ge.
-    ///    - If Month Branch is Day Master's Di Wang -> Yue Ren Ge.
-    /// 2. **Transpired Stems**: Priority to Hidden Stems of Month Branch appearing in Year/Month/Hour Stems.
-    ///    - Month Stem has highest priority.
-    ///    - Prioritize Non-Peer (not Friend/RobWealth) patterns if multiple transpire.
-    /// 3. **Month Branch Main Qi**: If no Transpired Stems, use Month Branch Main Qi.
     public func determinePattern() -> Pattern {
         let dayStem = self.day.stem
         let monthBranch = self.month.branch
@@ -61,98 +108,59 @@ extension FourPillars {
         
         if stage == .linGuan {
             // 建禄格 (Jian Lu Ge)
-            return Pattern(tenGod: .friend, method: .jianLu, customName: "建禄格")
+            // No customName needed, Pattern.description handles it via method.description
+            return Pattern(tenGod: .friend, method: .jianLu)
         }
         
         if stage == .diWang {
             // 月刃格 (Yue Ren Ge) / 羊刃格 (Yang Ren Ge)
             if dayStem.yinYang == .yang {
-                // 阳干直接叫羊刃格 (Yang Stem -> Yang Ren)
-                return Pattern(tenGod: .robWealth, method: .yangRen, customName: "羊刃格")
+                return Pattern(tenGod: .robWealth, method: .yangRen)
             } else {
-                // 阴干定为月刃格 (Yin Stem -> Yue Ren)
-                return Pattern(tenGod: .robWealth, method: .yueRen, customName: "月刃格")
+                return Pattern(tenGod: .robWealth, method: .yueRen)
             }
         }
         
         // 2. Check Transpired Stems
-        // We collect all potential patterns first, then select the best one.
         var candidates: [Pattern] = []
         
-        // Check Month Stem
         if hiddenStems.contains(self.month.stem) {
             candidates.append(Pattern(tenGod: self.tenGod(for: self.month.stem), method: .transpiredMonthStem))
         }
-        
-        // Check Year Stem
         if hiddenStems.contains(self.year.stem) {
-             // We iterate hidden stems order to see which one matches (Main > Middle > Residual)
-             // But actually, checking if year.stem is in hiddenStems is enough to know it's transpired.
-             // We can just add it.
              candidates.append(Pattern(tenGod: self.tenGod(for: self.year.stem), method: .transpiredYearStem))
         }
-        
-        // Check Hour Stem
         if hiddenStems.contains(self.hour.stem) {
              candidates.append(Pattern(tenGod: self.tenGod(for: self.hour.stem), method: .transpiredHourStem))
         }
         
-        // Selection Logic:
-        // Priority A: Month Stem Transpired (AND is not Friend/RobWealth if possible? User says Month Stem is most influential)
-        // User rule: "If Month Stem transpired... prioritize".
-        // But also: "Friend/RobWealth rarely used as pattern".
-        // So: If Month Stem is NOT Friend/RobWealth, return it immediately.
         if let monthPattern = candidates.first(where: { $0.method == .transpiredMonthStem }) {
             if monthPattern.tenGod != .friend && monthPattern.tenGod != .robWealth {
                 return monthPattern
             }
         }
         
-        // Priority B: Other Transpired Stems (Year/Hour) that are NOT Friend/RobWealth
-        // We prefer Main Qi > Middle > Residual if possible, but the `candidates` array structure above doesn't preserve that order perfectly across pillars.
-        // Let's iterate Hidden Stems order (Main -> Middle -> Residual) and check if they transpired in any pillar.
-        
         for hiddenStem in hiddenStems {
             let tenGod = self.tenGod(for: hiddenStem)
-            
-            // Skip Friend/RobWealth in this phase
             if tenGod == .friend || tenGod == .robWealth { continue }
             
-            // Check Month (again, to catch cases where Month was Friend/RobWealth but maybe another hidden stem transpired in Month? No, Month has only 1 stem)
             if self.month.stem == hiddenStem {
                 return Pattern(tenGod: tenGod, method: .transpiredMonthStem)
             }
-            
-            // Check Year
             if self.year.stem == hiddenStem {
                 return Pattern(tenGod: tenGod, method: .transpiredYearStem)
             }
-            
-            // Check Hour
             if self.hour.stem == hiddenStem {
                 return Pattern(tenGod: tenGod, method: .transpiredHourStem)
             }
         }
         
-        // Priority C: If we only have Friend/RobWealth transpired candidates?
-        // User says "rarely used".
-        // If we found NO suitable non-peer pattern above, we fall through to Main Qi check.
-        
-        // 3. Month Branch Main Qi
         let mainQi = monthBranch.mainQi
         let mainQiTenGod = TenGods.calculate(dayMaster: dayStem, targetElement: mainQi.fiveElement, targetYinYang: mainQi.yinYang)
         
-        // If Main Qi is NOT Friend/RobWealth, use it.
         if mainQiTenGod != .friend && mainQiTenGod != .robWealth {
             return Pattern(tenGod: mainQiTenGod, method: .monthBranchMainQi)
         }
-        
-        // If Main Qi IS Friend/RobWealth (and wasn't LinGuan/DiWang caught in Step 1)
-        // e.g. Earth Day Master in Earth Month (Grave) -> Main Qi Friend/RobWealth.
-        // Or if Step 1 didn't catch it for some reason.
-        // In this edge case, we might return the Main Qi pattern anyway, or one of the transpired Peer patterns if they exist.
-        // Given the constraints, returning the Main Qi pattern (even if Peer) is the safest fallback if nothing else exists.
-        // But we should try to return a transpired Peer pattern if one exists (e.g. Month Stem Transpired Friend) because Transpired > Main Qi generally.
         
         if let bestPeerCandidate = candidates.first(where: { $0.method == .transpiredMonthStem }) ?? candidates.first {
              return bestPeerCandidate
