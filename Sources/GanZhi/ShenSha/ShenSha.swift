@@ -174,64 +174,64 @@ public extension FourPillars {
 
         // --- Standard Lookups (Switch Case / Logic) ---
         
-        // Tian Yi Gui Ren
-        if checkTianYi(stem: dayStem, branch: branch) || checkTianYi(stem: yearStem, branch: branch) {
+        // Tian Yi Gui Ren (Only Day Stem)
+        if checkTianYi(stem: dayStem, branch: branch) {
             stars.append(.tianYi)
         }
         
-        // Tai Ji Gui Ren
-        if checkTaiJi(stem: dayStem, branch: branch) || checkTaiJi(stem: yearStem, branch: branch) {
+        // Tai Ji Gui Ren (Only Day Stem)
+        if checkTaiJi(stem: dayStem, branch: branch) {
             stars.append(.taiJi)
         }
         
-        // Wen Chang
-        if checkWenChang(stem: dayStem, branch: branch) || checkWenChang(stem: yearStem, branch: branch) {
+        // Wen Chang (Only Day Stem)
+        if checkWenChang(stem: dayStem, branch: branch) {
             stars.append(.wenChang)
         }
         
         // --- Based on Year Branch or Day Branch ---
         
-        // Yi Ma
-        if checkYiMa(base: yearBranch, target: branch) || checkYiMa(base: dayBranch, target: branch) {
+        // Yi Ma (Only Day Branch)
+        if checkYiMa(base: dayBranch, target: branch) {
             stars.append(.yiMa)
         }
         
-        // Tao Hua
-        if checkTaoHua(base: yearBranch, target: branch) || checkTaoHua(base: dayBranch, target: branch) {
+        // Tao Hua (Only Day Branch)
+        if checkTaoHua(base: dayBranch, target: branch) {
             stars.append(.taoHua)
         }
         
-        // Hua Gai
-        if checkHuaGai(base: yearBranch, target: branch) || checkHuaGai(base: dayBranch, target: branch) {
+        // Hua Gai (Only Day Branch)
+        if checkHuaGai(base: dayBranch, target: branch) {
             stars.append(.huaGai)
         }
         
-        // Jiang Xing
-        if checkJiangXing(base: yearBranch, target: branch) || checkJiangXing(base: dayBranch, target: branch) {
+        // Jiang Xing (Only Day Branch)
+        if checkJiangXing(base: dayBranch, target: branch) {
             stars.append(.jiangXing)
         }
         
-        // Jie Sha
-        if checkJieSha(base: yearBranch, target: branch) || checkJieSha(base: dayBranch, target: branch) {
+        // Jie Sha (Only Day Branch)
+        if checkJieSha(base: dayBranch, target: branch) {
             stars.append(.jieSha)
         }
         
-        // Wang Shen
-        if checkWangShen(base: yearBranch, target: branch) || checkWangShen(base: dayBranch, target: branch) {
+        // Wang Shen (Only Day Branch)
+        if checkWangShen(base: dayBranch, target: branch) {
             stars.append(.wangShen)
         }
         
-        // Gu Chen
+        // Gu Chen (Must use Year Branch)
         if checkGuChen(yearBranch: yearBranch, target: branch) {
             stars.append(.guChen)
         }
         
-        // Gua Su
+        // Gua Su (Must use Year Branch)
         if checkGuaSu(yearBranch: yearBranch, target: branch) {
             stars.append(.guaSu)
         }
         
-        // Yuan Chen
+        // Yuan Chen (Must use Year Stem/Branch)
         if checkYuanChen(yearStem: yearStem, yearBranch: yearBranch, target: branch) {
             stars.append(.yuanChen)
         }
@@ -250,9 +250,8 @@ public extension FourPillars {
         
         // --- Based on Stem Cycle (Xun Kong) ---
         
-        // Kong Wang
-        if checkKongWang(stem: self.day.stem, branch: self.day.branch, target: branch) ||
-           checkKongWang(stem: self.year.stem, branch: self.year.branch, target: branch) {
+        // Kong Wang (Only Day Pillar)
+        if checkKongWang(stem: self.day.stem, branch: self.day.branch, target: branch) {
             stars.append(.kongWang)
         }
         
