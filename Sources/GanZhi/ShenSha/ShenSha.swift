@@ -300,6 +300,16 @@ public extension FourPillars {
         return false
     }
     
+    private func checkSequential(_ stems: [Stem]) -> Bool {
+        // Simplified sequential logic - needs robust cyclic check or sorted index check
+        // Assuming sorted by index for basic check
+        let sorted = stems.sorted { $0.index < $1.index }
+        for i in 0..<sorted.count - 1 {
+            if sorted[i+1].index != sorted[i].index + 1 { return false }
+        }
+        return true
+    }
+    
     private func isSequential(_ stems: [Stem]) -> Bool {
         let indices = stems.map { $0.index }.sorted()
         // Check for direct sequence
