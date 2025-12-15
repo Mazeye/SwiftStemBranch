@@ -116,12 +116,11 @@ public extension Date {
         let hourBranchIndex = (currentHour + 1) / 2
         let hourBranch = Branch.from(index: hourBranchIndex)
         
-        let lookupDayStem: Stem
-        if currentHour >= 23 {
-            lookupDayStem = daySB.stem.next
-        } else {
-            lookupDayStem = daySB.stem
-        }
+        // Late Rat (Wan Zi) Handling:
+        // 23:00-00:00 is considered the Late Rat hour of the CURRENT day.
+        // The Day Pillar does not change until 00:00.
+        // We use the current Day Stem for calculating the Hour Stem.
+        let lookupDayStem = daySB.stem
         
         let hourStemStart = (lookupDayStem.index % 5) * 2
         let hourStem = Stem.from(index: hourStemStart + hourBranch.index)
