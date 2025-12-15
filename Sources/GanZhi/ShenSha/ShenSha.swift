@@ -121,7 +121,210 @@ public enum ShenSha: String, CaseIterable, CustomStringConvertible {
     }
 }
 
+/// Represents Global Shen Sha (Chart-wide Stars/Features).
+public enum GlobalShenSha: String, CaseIterable, CustomStringConvertible {
+    case sanQi = "三奇贵人"      // San Qi (Three Wonders)
+    case kuiGang = "魁罡贵人"    // Kui Gang (Authoritarian)
+    case jinShen = "金神格"      // Jin Shen (Golden Spirit Pattern)
+    case shiEDaBai = "十恶大败"  // Shi E Da Bai (Ten Evils Big Failure)
+    case tianYuanYiQi = "天元一气" // Tian Yuan Yi Qi (Heavenly Unity)
+    case diZhiYiQi = "地支一气"    // Di Zhi Yi Qi (Earthly Unity)
+    case tianGanLianRu = "天干连茹" // Tian Gan Lian Ru (Sequential Stems)
+    case diZhiLianRu = "地支连茹"   // Di Zhi Lian Ru (Sequential Branches)
+    
+    public var name: String {
+        switch GanZhiConfig.language {
+        case .simplifiedChinese: return self.rawValue
+        case .traditionalChinese:
+            switch self {
+            case .sanQi: return "三奇貴人"
+            case .kuiGang: return "魁罡貴人"
+            case .jinShen: return "金神格"
+            case .shiEDaBai: return "十惡大敗"
+            case .tianYuanYiQi: return "天元一氣"
+            case .diZhiYiQi: return "地支一氣"
+            case .tianGanLianRu: return "天干連茹"
+            case .diZhiLianRu: return "地支連茹"
+            }
+        case .japanese:
+            switch self {
+            case .sanQi: return "三奇貴人"
+            case .kuiGang: return "魁罡"
+            case .jinShen: return "金神"
+            case .shiEDaBai: return "十悪大敗"
+            case .tianYuanYiQi: return "天元一気"
+            case .diZhiYiQi: return "地支一気"
+            case .tianGanLianRu: return "天干連茹"
+            case .diZhiLianRu: return "地支連茹"
+            }
+        case .english:
+            switch self {
+            case .sanQi: return "Three Wonders"
+            case .kuiGang: return "Kui Gang Nobleman"
+            case .jinShen: return "Golden Spirit Pattern"
+            case .shiEDaBai: return "Ten Evils Big Failure"
+            case .tianYuanYiQi: return "Heavenly Unity"
+            case .diZhiYiQi: return "Earthly Unity"
+            case .tianGanLianRu: return "Sequential Stems"
+            case .diZhiLianRu: return "Sequential Branches"
+            }
+        }
+    }
+    
+    public var description: String { return name }
+}
+
 public extension FourPillars {
+    
+    /// Calculates Global Shen Sha (Chart-wide features).
+    var globalShenSha: [GlobalShenSha] {
+        var stars: [GlobalShenSha] = []
+        
+        let yS = year.stem
+        let mS = month.stem
+        let dS = day.stem
+        let hS = hour.stem
+        
+        let yB = year.branch
+        let mB = month.branch
+        let dB = day.branch
+        let hB = hour.branch
+        
+        // 1. San Qi (Three Wonders)
+        // Order: Year-Month-Day or Month-Day-Hour ? Usually requires adjacency.
+        // Sky: Jia Wu Geng
+        // Earth: Yi Bing Ding
+        // Man: Ren Gui Xin
+        if checkSanQi(s1: yS, s2: mS, s3: dS) || checkSanQi(s1: mS, s2: dS, s3: hS) {
+            stars.append(.sanQi)
+        }
+        
+        // 2. Kui Gang (Day Pillar)
+        // Ren Chen, Geng Xu, Geng Chen, Wu Xu
+        if (dS == .ren && dB == .chen) ||
+           (dS == .geng && dB == .xu) ||
+           (dS == .geng && dB == .chen) ||
+           (dS == .wu && dB == .xu) {
+            stars.append(.kuiGang)
+        }
+        
+        // 3. Jin Shen (Hour Pillar + Day Stem)
+        // Hour: Yi Chou, Ji Si, Gui You. Day Stem: Jia or Ji (some schools say only Jia/Ji, others broader).
+        // Strict: Jia/Ji Day + Jin Shen Hour.
+        if (dS == .jia || dS == .ji) {
+            if (hS == .yi && hB == .chou) ||
+               (hS == .ji && hB == .si) ||
+               (hS == .gui && hB == .you) {
+                stars.append(.jinShen)
+            }
+        }
+        
+        // 4. Shi E Da Bai (Day Pillar)
+        // Jia Chen, Yi Si, Bing Shen, Ding Hai, Wu Xu, Ji Chou, Geng Chen, Xin Si, Ren Shen, Gui Hai
+        // Year Branch relationship is checked? Usually fixed Pillars.
+        // The definition is based on empty stems relative to year? No, usually fixed list of 10 days.
+        let shiEList: [(Stem, Branch)] = [
+            (.jia, .chen), (.yi, .si), (.bing, .shen), (.ding, .hai), (.wu, .xu),
+            (.ji, .chou), (.geng, .chen), (.xin, .si), (.ren, .shen), (.gui, .hai)
+        ]
+        if shiEList.contains(where: { $0.0 == dS && $0.1 == dB }) {
+            // Need to check if it matches the specific definition (Year Pillar relationship).
+            // Simplified: often just checking the day pillar is considered a warning sign, 
+            // but strict definition involves Lu being in Kong Wang of Year.
+            // Let's use strict check: Day Lu is in Year's Kong Wang?
+            // Actually Shi E Da Bai means "Day Lu is in Empty Branch (Kong Wang) relative to Year Stem".
+            let luBranch = Branch.allCases.first(where: { dS.lifeStage(in: $0) == .linGuan })
+            if let lu = luBranch, checkKongWang(stem: year.stem, branch: year.branch, target: lu) {
+                stars.append(.shiEDaBai)
+            }
+        }
+        
+        // 5. Heavenly Unity (Tian Yuan Yi Qi)
+        if yS == mS && mS == dS && dS == hS {
+            stars.append(.tianYuanYiQi)
+        }
+        
+        // 6. Earthly Unity (Di Zhi Yi Qi)
+        if yB == mB && mB == dB && dB == hB {
+            stars.append(.diZhiYiQi)
+        }
+        
+        // 7. Sequential Stems (Lian Ru)
+        // Check if stems are sequential (e.g. Jia Yi Bing Ding)
+        if isSequential([yS, mS, dS, hS]) {
+            stars.append(.tianGanLianRu)
+        }
+        
+        // 8. Sequential Branches (Lian Ru)
+        if isSequentialBranches([yB, mB, dB, hB]) {
+            stars.append(.diZhiLianRu)
+        }
+        
+        return stars
+    }
+    
+    /// Calculates all Global Shen Sha names, including built-in and user-registered ones.
+    var allGlobalShenShaNames: [String] {
+        // 1. Get Built-in names
+        var names = self.globalShenSha.map { $0.name }
+        
+        // 2. Get Custom Registered names
+        let customRules = ShenShaRegistry.getAllRules()
+        for rule in customRules {
+            if rule.check(self) {
+                names.append(rule.name)
+            }
+        }
+        
+        return names
+    }
+    
+    // MARK: - Global Logic Helpers
+    
+    private func checkSanQi(s1: Stem, s2: Stem, s3: Stem) -> Bool {
+        let set: Set<Stem> = [s1, s2, s3]
+        if set.count != 3 { return false }
+        
+        // Heaven: Jia Wu Geng
+        let heaven: Set<Stem> = [.jia, .wu, .geng]
+        if set == heaven { return true }
+        
+        // Earth: Yi Bing Ding
+        let earth: Set<Stem> = [.yi, .bing, .ding]
+        if set == earth { return true }
+        
+        // Man: Ren Gui Xin
+        let man: Set<Stem> = [.ren, .gui, .xin]
+        if set == man { return true }
+        
+        return false
+    }
+    
+    private func isSequential(_ stems: [Stem]) -> Bool {
+        let indices = stems.map { $0.index }.sorted()
+        // Check for direct sequence
+        for i in 0..<indices.count - 1 {
+            if indices[i+1] != indices[i] + 1 {
+                // Handle wrapping (Gui -> Jia)? Usually implies continuous flow.
+                // 9, 0, 1, 2 is sequential? (Gui, Jia, Yi, Bing)
+                // Let's stick to simple sorted sequence for now.
+                return false
+            }
+        }
+        return true
+    }
+    
+    private func isSequentialBranches(_ branches: [Branch]) -> Bool {
+        let indices = branches.map { $0.index }.sorted()
+        for i in 0..<indices.count - 1 {
+            if indices[i+1] != indices[i] + 1 {
+                return false
+            }
+        }
+        return true
+    }
+
+    // ... (Existing Branch ShenSha methods) ...
     
     /// Calculates the Shen Sha (Stars) for a specific pillar's branch.
     func shenSha(for branch: Branch) -> [ShenSha] {

@@ -124,6 +124,8 @@ print("核心十神: \(pattern.tenGod.rawValue)")  // 例如: "正印"
 
 ### 7. 神煞分析 (Shen Sha)
 
+#### 7.1 地支神煞 (Branch-based Stars)
+
 基于十二长生状态（Life Stages）和五行关系，计算地支中包含的常用神煞。
 
 ```swift
@@ -137,11 +139,39 @@ if !stars.isEmpty {
 }
 ```
 
-支持的神煞包括：
-*   **贵人**: 天乙、太极、文昌、天德、月德
-*   **性格**: 驿马、桃花、华盖、将星、金神
-*   **禄命**: 禄神（基于临官）、金舆、羊刃（基于帝旺/冠带）、飞刃
-*   **凶煞**: 空亡、元辰、劫煞、亡神、孤辰、寡宿
+支持的神煞包括：天乙贵人、太极贵人、文昌贵人、驿马、桃花、禄神、羊刃、空亡等。
+
+#### 7.2 全局神煞 (Global/Chart-wide Stars)
+
+某些神煞是基于全盘结构或特定柱位（如日柱、时柱）判定的，不依附于单一地支。
+
+```swift
+let globalStars = pillars.allGlobalShenShaNames
+
+if !globalStars.isEmpty {
+    print("全局神煞: \(globalStars.joined(separator: " "))")
+    // 例如: "全局神煞: 三奇贵人 魁罡贵人"
+}
+```
+
+内置支持：三奇贵人、魁罡贵人、金神格、十恶大败、天元一气、地支一气等。
+
+#### 7.3 注册自定义神煞规则
+
+SwiftGanZhi 提供了灵活的注册机制，允许用户根据不同流派定义自己的神煞规则。
+
+```swift
+// 注册一个“四柱纯阳”的规则
+ShenShaRegistry.register("四柱纯阳") { pillars in
+    let stems = [pillars.year.stem, pillars.month.stem, pillars.day.stem, pillars.hour.stem]
+    let branches = [pillars.year.branch, pillars.month.branch, pillars.day.branch, pillars.hour.branch]
+    
+    return stems.allSatisfy { $0.yinYang == .yang } && 
+           branches.allSatisfy { $0.yinYang == .yang }
+}
+
+// 之后调用 .allGlobalShenShaNames 时会自动包含该规则的检查结果
+```
 
 ### 8. 多语言支持 (i18n)
 

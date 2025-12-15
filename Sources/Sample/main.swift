@@ -54,6 +54,27 @@ func parseDate(_ args: [String]) -> (Date, Gender) {
 let (date, gender) = parseDate(args)
 let pillars = date.fourPillars()
 
+// --------------------------------------------------
+// Demo: Register a Custom Shen Sha Rule
+// --------------------------------------------------
+// Example 1: Pure Yin (All Stems and Branches are Yin)
+ShenShaRegistry.register("四柱纯阴") { p in
+    let stems = [p.year.stem, p.month.stem, p.day.stem, p.hour.stem]
+    let branches = [p.year.branch, p.month.branch, p.day.branch, p.hour.branch]
+    return stems.allSatisfy { $0.yinYang == .yin } && branches.allSatisfy { $0.yinYang == .yin }
+}
+
+ShenShaRegistry.register("四柱纯阳") { p in
+    let stems = [p.year.stem, p.month.stem, p.day.stem, p.hour.stem]
+    let branches = [p.year.branch, p.month.branch, p.day.branch, p.hour.branch]
+    return stems.allSatisfy { $0.yinYang == .yang } && branches.allSatisfy { $0.yinYang == .yang }
+}
+
+// Example 2: Simple Test Rule (Year Stem is Yi) - Just to show it works with current default date
+ShenShaRegistry.register("测试规则(年干为乙)") { p in
+    return p.year.stem == .yi
+}
+
 // Localized strings for Sample output labels
 let labels: [String: String] = {
     switch GanZhiConfig.language {
@@ -186,6 +207,14 @@ for (index, pillar) in pillarsList.enumerated() {
 }
 
 print("--------------------------------------------------")
+let globalStarNames = pillars.allGlobalShenShaNames
+if !globalStarNames.isEmpty {
+    let title = (GanZhiConfig.language == .english) ? "Global Stars" : "全局神煞"
+    let starsStr = globalStarNames.joined(separator: " ")
+    print("\(title): \(starsStr)")
+    print("--------------------------------------------------")
+}
+
 let genderStr = (gender == .male) ? L("male") : L("female")
 print("\(L("luckCycles")) (\(genderStr)\(L("ming"))):")
 

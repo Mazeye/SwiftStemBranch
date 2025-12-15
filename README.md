@@ -86,7 +86,9 @@ print(branchTenGod) // e.g., .directResource
 
 ### 7. Shen Sha Analysis (Stars/Gods)
 
-Analyze common Shen Sha based on Life Stages and Five Elements relationships.
+#### 7.1 Branch-based Stars
+
+Analyze common Shen Sha based on Life Stages and Five Elements relationships within specific branches.
 
 ```swift
 let branch = pillars.month.branch
@@ -95,8 +97,40 @@ let stars = pillars.shenSha(for: branch)
 if !stars.isEmpty {
     // Use .name for localized output
     print("Stars: \(stars.map { $0.name }.joined(separator: " "))")
-    // e.g., "Stars: Nobleman Traveling Horse" (in English mode)
+    // e.g., "Stars: Nobleman Traveling Horse"
 }
+```
+
+#### 7.2 Global Stars (Chart-wide Features)
+
+Analyze patterns that apply to the entire chart or specific pillar combinations (e.g., San Qi, Kui Gang).
+
+```swift
+let globalStars = pillars.allGlobalShenShaNames
+
+if !globalStars.isEmpty {
+    print("Global Stars: \(globalStars.joined(separator: " "))")
+    // e.g., "Global Stars: Three Wonders Kui Gang Nobleman"
+}
+```
+
+Built-in support: Three Wonders (San Qi), Kui Gang, Golden Spirit, Ten Evils Big Failure, Heavenly Unity, etc.
+
+#### 7.3 Register Custom Rules
+
+SwiftGanZhi allows you to define custom rules to support different schools of thought.
+
+```swift
+// Register a "Pure Yang" rule
+ShenShaRegistry.register("Pure Yang") { pillars in
+    let stems = [pillars.year.stem, pillars.month.stem, pillars.day.stem, pillars.hour.stem]
+    let branches = [pillars.year.branch, pillars.month.branch, pillars.day.branch, pillars.hour.branch]
+    
+    return stems.allSatisfy { $0.yinYang == .yang } && 
+           branches.allSatisfy { $0.yinYang == .yang }
+}
+
+// The rule will be automatically checked when calling .allGlobalShenShaNames
 ```
 
 ### 8. Internationalization (i18n)

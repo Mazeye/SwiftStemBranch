@@ -122,7 +122,9 @@ print("中心通変星: \(pattern.tenGod.rawValue)")  // 例: "正印"
 
 ### 7. 神煞分析 (Shen Sha)
 
-十二運と五行関係に基づいて、地支に含まれる一般的な神煞（吉凶星）を分析します。
+#### 7.1 地支神煞 (Branch-based Stars)
+
+十二運と五行关系に基づいて、地支に含まれる一般的な神煞（吉凶星）を分析します。
 
 ```swift
 let branch = pillars.month.branch
@@ -131,8 +133,40 @@ let stars = pillars.shenSha(for: branch)
 if !stars.isEmpty {
     // .name を使用してローカライズされた名前を取得
     print("神煞: \(stars.map { $0.name }.joined(separator: " "))")
-    // 例: "神煞: 天乙貴人 駅馬" (日本語モード)
+    // 例: "神煞: 天乙貴人 駅馬"
 }
+```
+
+#### 7.2 全局神煞 (Global Stars)
+
+命式全体の構造や特定の柱（三奇貴人、魁罡など）に基づく神煞を分析します。
+
+```swift
+let globalStars = pillars.allGlobalShenShaNames
+
+if !globalStars.isEmpty {
+    print("全局神煞: \(globalStars.joined(separator: " "))")
+    // 例: "全局神煞: 三奇貴人 魁罡"
+}
+```
+
+内蔵サポート：三奇貴人、魁罡、金神、十悪大敗、天元一気など。
+
+#### 7.3 カスタムルールの登録
+
+SwiftGanZhi は柔軟な登録メカニズムを提供しており、流派に応じて独自の神煞ルールを定義できます。
+
+```swift
+// 「四柱純陽」ルールを登録
+ShenShaRegistry.register("四柱純陽") { pillars in
+    let stems = [pillars.year.stem, pillars.month.stem, pillars.day.stem, pillars.hour.stem]
+    let branches = [pillars.year.branch, pillars.month.branch, pillars.day.branch, pillars.hour.branch]
+    
+    return stems.allSatisfy { $0.yinYang == .yang } && 
+           branches.allSatisfy { $0.yinYang == .yang }
+}
+
+// .allGlobalShenShaNames を呼び出す際に自動的にチェックされます
 ```
 
 ### 8. 多言語対応 (i18n)
