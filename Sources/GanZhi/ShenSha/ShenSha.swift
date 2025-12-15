@@ -300,24 +300,9 @@ public extension FourPillars {
         return false
     }
     
-    private func checkSequential(_ stems: [Stem]) -> Bool {
-        // Simplified sequential logic - needs robust cyclic check or sorted index check
-        // Assuming sorted by index for basic check
-        let sorted = stems.sorted { $0.index < $1.index }
-        for i in 0..<sorted.count - 1 {
-            if sorted[i+1].index != sorted[i].index + 1 { return false }
-        }
-        return true
-    }
-    
     private func isSequential(_ stems: [Stem]) -> Bool {
-        let indices = stems.map { $0.index }.sorted()
-        // Check for direct sequence
-        for i in 0..<indices.count - 1 {
-            if indices[i+1] != indices[i] + 1 {
-                // Handle wrapping (Gui -> Jia)? Usually implies continuous flow.
-                // 9, 0, 1, 2 is sequential? (Gui, Jia, Yi, Bing)
-                // Let's stick to simple sorted sequence for now.
+        for i in 0..<stems.count - 1 {
+            if stems[i+1] != stems[i].next(1) {
                 return false
             }
         }
@@ -325,9 +310,8 @@ public extension FourPillars {
     }
     
     private func isSequentialBranches(_ branches: [Branch]) -> Bool {
-        let indices = branches.map { $0.index }.sorted()
-        for i in 0..<indices.count - 1 {
-            if indices[i+1] != indices[i] + 1 {
+        for i in 0..<branches.count - 1 {
+            if branches[i+1] != branches[i].next(1) {
                 return false
             }
         }
