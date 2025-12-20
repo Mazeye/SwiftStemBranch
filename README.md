@@ -84,6 +84,39 @@ let branchTenGod = pillars.tenGod(for: pillars.month.branch.value)
 print(branchTenGod) // e.g., .directResource
 ```
 
+### 6. Luck Cycles & Annual Luck (Da Yun & Liu Nian)
+
+Calculate the Start Age, Major Luck Cycles (Da Yun), and derive Annual Luck (Liu Nian).
+
+```swift
+let calculator = LuckCalculator(gender: .male, pillars: pillars, birthDate: date)
+
+// 1. Get Start Age
+let startAge = calculator.calculateStartAge()
+print("Start Age: \(startAge)")
+
+// 2. Get Major Cycles (Default: 10 cycles)
+let cycles = calculator.getMajorCycles()
+
+for cycle in cycles {
+    print(cycle.description) // e.g. "Bing-Yin Cycle (Start: 3.4 yrs, 1987-1996)"
+    
+    // 3. Derive Annual Luck (Liu Nian)
+    // Iterate through years in the cycle
+    for year in cycle.startYear...cycle.endYear {
+        // Calculate Stem-Branch for the year
+        // 1984 is Jia-Zi (Index 0)
+        let offset = year - 1984
+        var index = offset % 60
+        if index < 0 { index += 60 }
+        let yearSB = StemBranch.from(index: index)
+        
+        let age = year - Calendar.current.component(.year, from: date)
+        print("  \(year) \(yearSB.character) (Age: \(age))")
+    }
+}
+```
+
 ### 7. Shen Sha Analysis (Stars/Gods)
 
 #### 7.1 Branch-based Stars

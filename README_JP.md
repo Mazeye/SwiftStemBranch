@@ -120,6 +120,39 @@ print("判定根拠: \(pattern.method.rawValue)") // 例: "月支本気"
 print("中心通変星: \(pattern.tenGod.rawValue)")  // 例: "正印"
 ```
 
+### 6. 大運と流年 (Luck Cycles & Annual Luck)
+
+立運（大運の開始年齢）や大運（10年ごとの運気）を計算し、各年の流年（年運）を導き出すことができます。
+
+```swift
+let calculator = LuckCalculator(gender: .male, pillars: pillars, birthDate: date)
+
+// 1. 立運（開始年齢）を取得
+let startAge = calculator.calculateStartAge()
+print("立運: \(startAge)歳")
+
+// 2. 大運を取得 (デフォルト: 10サイクル)
+let cycles = calculator.getMajorCycles()
+
+for cycle in cycles {
+    print(cycle.description) // 例: "丙寅運 (立運: 3.4歳, 1987-1996)"
+    
+    // 3. 流年 (年運) を導出
+    // 大運期間中の各年を反復処理
+    for year in cycle.startYear...cycle.endYear {
+        // 年の干支を計算
+        // 1984年は甲子年(インデックス0)
+        let offset = year - 1984
+        var index = offset % 60
+        if index < 0 { index += 60 }
+        let yearSB = StemBranch.from(index: index)
+        
+        let age = year - Calendar.current.component(.year, from: date)
+        print("  \(year) \(yearSB.character) (\(age)歳)")
+    }
+}
+```
+
 ### 7. 神煞分析 (Shen Sha)
 
 #### 7.1 地支神煞 (Branch-based Stars)

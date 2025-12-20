@@ -224,8 +224,32 @@ let startAge = calculator.calculateStartAge()
 
 print("\(L("startAge")): \(String(format: "%.2f", startAge)) \(L("age"))")
 
+// Helper for Liu Nian Stem-Branch
+func getStemBranch(forYear year: Int) -> StemBranch {
+    // 1984 is Jia Zi (Year of the Wood Rat), Index 0
+    let offset = year - 1984
+    var index = offset % 60
+    if index < 0 { index += 60 }
+    return StemBranch.from(index: index)
+}
+
+let birthYear = Calendar.current.component(.year, from: date)
+
 for cycle in cycles {
-    print(cycle.description) 
+    print(cycle.description)
+    // Print Liu Nian for this cycle
+    var liuNianOutput = "  "
+    for year in cycle.startYear...cycle.endYear {
+        let sb = getStemBranch(forYear: year)
+        let age = year - birthYear
+        liuNianOutput += "\(year)\(sb.character)[\(age)\(L("age"))] "
+        
+        // Break line every 5 years for readability
+        if (year - cycle.startYear + 1) % 5 == 0 && year != cycle.endYear {
+            liuNianOutput += "\n  "
+        }
+    }
+    print(liuNianOutput)
 }
 
 print("--------------------------------------------------")

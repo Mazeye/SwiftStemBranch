@@ -122,6 +122,39 @@ print("判定依据: \(pattern.method.rawValue)") // 例如: "月支本气"
 print("核心十神: \(pattern.tenGod.rawValue)")  // 例如: "正印"
 ```
 
+### 6. 大运与流年 (Luck Cycles & Annual Luck)
+
+支持计算起运岁数、排出大运，并可推导每一年的流年干支。
+
+```swift
+let calculator = LuckCalculator(gender: .male, pillars: pillars, birthDate: date)
+
+// 1. 获取起运岁数
+let startAge = calculator.calculateStartAge()
+print("起运岁数: \(startAge)")
+
+// 2. 获取大运排盘 (默认 10 步大运)
+let cycles = calculator.getMajorCycles()
+
+for cycle in cycles {
+    print(cycle.description) // 例如: "丙寅运 (起运: 3.4岁, 1987-1996)"
+    
+    // 3. 推导流年 (Yearly Luck)
+    // 遍历大运期间的每一年
+    for year in cycle.startYear...cycle.endYear {
+        // 计算流年干支
+        // 1984年是甲子年(索引0)，以此推算
+        let offset = year - 1984
+        var index = offset % 60
+        if index < 0 { index += 60 }
+        let yearSB = StemBranch.from(index: index)
+        
+        let age = year - Calendar.current.component(.year, from: date)
+        print("  \(year) \(yearSB.character) (\(age)岁)")
+    }
+}
+```
+
 ### 7. 神煞分析 (Shen Sha)
 
 #### 7.1 地支神煞 (Branch-based Stars)
