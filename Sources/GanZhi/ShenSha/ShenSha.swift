@@ -321,7 +321,7 @@ public extension FourPillars {
     // ... (Existing Branch ShenSha methods) ...
     
     /// Calculates the Shen Sha (Stars) for a specific pillar's branch.
-    public func shenSha(for branch: Branch) -> [ShenSha] {
+    func shenSha(for branch: Branch) -> [ShenSha] {
         var stars: [ShenSha] = []
         
         let dayStem = self.day.stem.value
@@ -455,7 +455,7 @@ public extension FourPillars {
         return stars
     }
     
-    public func shenSha(for branchWrapper: Pillar.BranchWrapper) -> [ShenSha] {
+    func shenSha(for branchWrapper: Pillar.BranchWrapper) -> [ShenSha] {
         return shenSha(for: branchWrapper.value)
     }
     
