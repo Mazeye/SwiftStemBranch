@@ -180,15 +180,15 @@ public extension FourPillars {
     var globalShenSha: [GlobalShenSha] {
         var stars: [GlobalShenSha] = []
         
-        let yS = year.stem
-        let mS = month.stem
-        let dS = day.stem
-        let hS = hour.stem
+        let yS = year.stem.value
+        let mS = month.stem.value
+        let dS = day.stem.value
+        let hS = hour.stem.value
         
-        let yB = year.branch
-        let mB = month.branch
-        let dB = day.branch
-        let hB = hour.branch
+        let yB = year.branch.value
+        let mB = month.branch.value
+        let dB = day.branch.value
+        let hB = hour.branch.value
         
         // 1. San Qi (Three Wonders)
         // Order: Year-Month-Day or Month-Day-Hour ? Usually requires adjacency.
@@ -234,7 +234,7 @@ public extension FourPillars {
             // Let's use strict check: Day Lu is in Year's Kong Wang?
             // Actually Shi E Da Bai means "Day Lu is in Empty Branch (Kong Wang) relative to Year Stem".
             let luBranch = Branch.allCases.first(where: { dS.lifeStage(in: $0) == .linGuan })
-            if let lu = luBranch, checkKongWang(stem: year.stem, branch: year.branch, target: lu) {
+            if let lu = luBranch, checkKongWang(stem: year.stem.value, branch: year.branch.value, target: lu) {
                 stars.append(.shiEDaBai)
             }
         }
@@ -321,14 +321,14 @@ public extension FourPillars {
     // ... (Existing Branch ShenSha methods) ...
     
     /// Calculates the Shen Sha (Stars) for a specific pillar's branch.
-    func shenSha(for branch: Branch) -> [ShenSha] {
+    public func shenSha(for branch: Branch) -> [ShenSha] {
         var stars: [ShenSha] = []
         
-        let dayStem = self.day.stem
-        let yearStem = self.year.stem
-        let yearBranch = self.year.branch
-        let dayBranch = self.day.branch
-        let monthBranch = self.month.branch
+        let dayStem = self.day.stem.value
+        let yearStem = self.year.stem.value
+        let yearBranch = self.year.branch.value
+        let dayBranch = self.day.branch.value
+        let monthBranch = self.month.branch.value
         
         // --- Based on Day Stem (Using Life Stages) ---
         
@@ -448,11 +448,15 @@ public extension FourPillars {
         // --- Based on Stem Cycle (Xun Kong) ---
         
         // Kong Wang (Only Day Pillar)
-        if checkKongWang(stem: self.day.stem, branch: self.day.branch, target: branch) {
+        if checkKongWang(stem: self.day.stem.value, branch: self.day.branch.value, target: branch) {
             stars.append(.kongWang)
         }
         
         return stars
+    }
+    
+    public func shenSha(for branchWrapper: Pillar.BranchWrapper) -> [ShenSha] {
+        return shenSha(for: branchWrapper.value)
     }
     
     // MARK: - Logic Implementations

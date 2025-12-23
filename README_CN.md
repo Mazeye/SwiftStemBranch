@@ -15,6 +15,7 @@
 * **天文级精度**：内置简化版 VSOP87/Meeus 算法计算太阳视黄经，精确判定节气交接时刻。
 * **真太阳时修正**：支持根据经度与均时差（Equation of Time）自动修正排盘时间。
 * **科学的日柱计算**：使用儒略日（Julian Day）算法，消除时区和闰年造成的日期偏差。
+* **五行/十神能量系数**：根据通根、距离及月令权重，动态计算干支能量强度。
 
 ## 📦 安装
 
@@ -76,14 +77,17 @@ print(pillars.hour.character)
 let pillars = date.fourPillars()
 
 // 获取天干十神
-// 注意：需使用 .value 从包装器中获取原始天干
-let stemTenGod = pillars.tenGod(for: pillars.year.stem.value)
-print(stemTenGod) // 例如: .robWealth (劫财)
+// 注意：现在 stem/branch 返回的是包装器。由于使用了 @dynamicMemberLookup，
+// 您依然可以像以前一样直接访问其 character, fiveElement 等属性。
+let stemTenGod = pillars.tenGod(for: pillars.year.stem)
+print(stemTenGod.name) // 例如: "劫财"
 
-// 获取地支十神（自动基于藏干本气计算）
-// 例如：子水(阳) 藏干为癸水(阴)，对于甲木日主，为正印而非偏印
-let branchTenGod = pillars.tenGod(for: pillars.month.branch.value) 
-print(branchTenGod) // 例如: .directResource (正印)
+// 获取能量系数
+let energy = pillars.month.stem.energy
+print("月干能量: \(energy)")
+
+// 如果某些场景（如严格类型匹配或 pattern matching）需要原始枚举，请使用 .value
+let rawStem: Stem = pillars.day.stem.value
 ```
 
 ### 4. 藏干分析（本气、中气、余气）

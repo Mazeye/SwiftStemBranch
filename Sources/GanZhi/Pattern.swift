@@ -104,7 +104,7 @@ extension FourPillars {
         let hiddenStems = monthBranch.hiddenStems
         
         // 1. Check Special Patterns: Jian Lu and Yue Ren
-        let stage = dayStem.lifeStage(in: monthBranch)
+        let stage = dayStem.value.lifeStage(in: monthBranch.value)
         
         if stage == .linGuan {
             // 建禄格 (Jian Lu Ge)
@@ -124,13 +124,13 @@ extension FourPillars {
         // 2. Check Transpired Stems
         var candidates: [Pattern] = []
         
-        if hiddenStems.contains(self.month.stem) {
+        if hiddenStems.contains(self.month.stem.value) {
             candidates.append(Pattern(tenGod: self.tenGod(for: self.month.stem), method: .transpiredMonthStem))
         }
-        if hiddenStems.contains(self.year.stem) {
+        if hiddenStems.contains(self.year.stem.value) {
              candidates.append(Pattern(tenGod: self.tenGod(for: self.year.stem), method: .transpiredYearStem))
         }
-        if hiddenStems.contains(self.hour.stem) {
+        if hiddenStems.contains(self.hour.stem.value) {
              candidates.append(Pattern(tenGod: self.tenGod(for: self.hour.stem), method: .transpiredHourStem))
         }
         
@@ -144,19 +144,19 @@ extension FourPillars {
             let tenGod = self.tenGod(for: hiddenStem)
             if tenGod == .friend || tenGod == .robWealth { continue }
             
-            if self.month.stem == hiddenStem {
+            if self.month.stem.value == hiddenStem {
                 return Pattern(tenGod: tenGod, method: .transpiredMonthStem)
             }
-            if self.year.stem == hiddenStem {
+            if self.year.stem.value == hiddenStem {
                 return Pattern(tenGod: tenGod, method: .transpiredYearStem)
             }
-            if self.hour.stem == hiddenStem {
+            if self.hour.stem.value == hiddenStem {
                 return Pattern(tenGod: tenGod, method: .transpiredHourStem)
             }
         }
         
         let mainQi = monthBranch.mainQi
-        let mainQiTenGod = TenGods.calculate(dayMaster: dayStem, targetElement: mainQi.fiveElement, targetYinYang: mainQi.yinYang)
+        let mainQiTenGod = TenGods.calculate(dayMaster: dayStem.value, targetElement: mainQi.fiveElement, targetYinYang: mainQi.yinYang)
         
         if mainQiTenGod != .friend && mainQiTenGod != .robWealth {
             return Pattern(tenGod: mainQiTenGod, method: .monthBranchMainQi)

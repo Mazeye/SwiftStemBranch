@@ -134,7 +134,7 @@ print(L("details"))
 
 func printPillar(_ name: String, _ pillar: FourPillars.Pillar) {    
     let stemTenGod = pillars.tenGod(for: pillar.stem).name 
-    let stemLifeStage = pillar.stem.lifeStage(in: pillar.branch).description
+    let stemLifeStage = pillar.stem.value.lifeStage(in: pillar.branch.value).description
     let branchTenGod = pillars.tenGod(for: pillar.branch).name 
     
     // Example: 甲(阳木)[比肩][临官]
@@ -158,13 +158,70 @@ print("\(L("coreTenGod")): \(pattern.tenGod.name)")
 print("--------------------------------------------------")
 
 print(L("fiveElements"))
-let counts = pillars.fiveElementCounts
+
+// Calculate Weighted Five Elements
+var elementScores: [FiveElements: Double] = [
+    .wood: 0, .fire: 0, .earth: 0, .metal: 0, .water: 0
+]
+// Calculate Weighted Ten Gods
+var tenGodScores: [TenGods: Double] = [
+    .friend: 0, .robWealth: 0, .eatingGod: 0, .hurtingOfficer: 0,
+    .directWealth: 0, .indirectWealth: 0, .directOfficer: 0, .sevenKillings: 0,
+    .directResource: 0, .indirectResource: 0
+]
+var dayMasterScore: Double = 0.0
+
+let currentPillars = [pillars.year, pillars.month, pillars.day, pillars.hour]
+for (index, pillar) in currentPillars.enumerated() {
+    let type = FourPillars.PillarType.allCases[index]
+    let stem = pillar.stem
+    let branch = pillar.branch
+    
+    // Five Elements
+    elementScores[stem.fiveElement, default: 0] += stem.energy
+    elementScores[branch.fiveElement, default: 0] += branch.energy
+    
+    // Ten Gods
+    if type == .day {
+        dayMasterScore += stem.energy
+    } else {
+        let sTenGod = pillars.tenGod(for: stem)
+        tenGodScores[sTenGod, default: 0] += stem.energy
+    }
+    
+    let bTenGod = pillars.tenGod(for: branch)
+    tenGodScores[bTenGod, default: 0] += branch.energy
+}
+
+let totalScore = elementScores.values.reduce(0, +)
+
 for element in FiveElements.allCases {
-    let count = counts[element, default: 0]
-    let bar = String(repeating: "█", count: count)
-    print("\(element.description): \(count) \(bar)") 
+    let score = elementScores[element, default: 0]
+    let percentage = (totalScore > 0) ? (score / totalScore) * 100 : 0
+    let barCount = Int(percentage / 2) // 1 char per 2%
+    let bar = String(repeating: "█", count: barCount)
+    let scoreStr = String(format: "%.1f", score)
+    print("\(element.description): \(scoreStr) \(bar)") 
 }
 print("--------------------------------------------------")
+
+// Print Ten Gods Ranking
+print((GanZhiConfig.language == .english) ? "Ten Gods Strength:" : "十神力量排序:")
+
+// Create a unified list for sorting
+var ranking: [(name: String, score: Double)] = tenGodScores.map { ($0.key.description, $0.value) }
+ranking.append(((GanZhiConfig.language == .english) ? "Day Master" : "日主", dayMasterScore))
+
+let sortedRanking = ranking.sorted { $0.score > $1.score }
+
+for item in sortedRanking {
+    if item.score > 0 {
+        let scoreStr = String(format: "%.1f", item.score)
+        print("\(item.name): \(scoreStr)")
+    }
+}
+print("--------------------------------------------------")
+
 print(L("yinYang"))
 let yinYangCounts = pillars.yinYangCounts
 for yy in YinYang.allCases {
@@ -181,7 +238,7 @@ let positions = [L("year"), L("month"), L("day"), L("hour")]
 
 for (index, pillar) in pillarsList.enumerated() {
     let branch = pillar.branch
-    let hidden = pillars.hiddenTenGods(for: branch)
+    let hidden = pillars.hiddenTenGods(for: branch.value)
     
     var info = "\(L("mainQi")): \(hidden.benQi.stem.character)(\(hidden.benQi.tenGod.name))"
     
@@ -194,7 +251,7 @@ for (index, pillar) in pillarsList.enumerated() {
     }
     
     // Shen Sha
-    let stars = pillars.shenSha(for: branch)
+    let stars = pillars.shenSha(for: branch.value)
     if !stars.isEmpty {
         let starsStr = stars.map { $0.name }.joined(separator: " ")
         info += " \(L("shenSha")): \(starsStr)"
@@ -252,4 +309,36 @@ for cycle in cycles {
     print(liuNianOutput)
 }
 
+// Energy Coefficients
+print("--------------------------------------------------")
+let energyTitle = (GanZhiConfig.language == .english) ? "Energy Coefficients:" : "能量系数:"
+print(energyTitle)
+
+let pillarsType: [FourPillars.PillarType] = [.year, .month, .day, .hour]
+if GanZhiConfig.language == .english {
+    print("Pillar | Stem Energy | Branch Energy")
+} else {
+    print("柱名   | 天干能量    | 地支能量")
+}
+
+let currentPillarsForTable = [pillars.year, pillars.month, pillars.day, pillars.hour]
+for (index, pillar) in currentPillarsForTable.enumerated() {
+    let pType = FourPillars.PillarType.allCases[index]
+    let sEnergy = pillar.stem.energy
+    let bEnergy = pillar.branch.energy
+    
+    let pName: String
+    switch pType {
+    case .year: pName = L("yearPillar")
+    case .month: pName = L("monthPillar")
+    case .day: pName = L("dayPillar")
+    case .hour: pName = L("hourPillar")
+    }
+    
+    // Formatting for alignment
+    let sEnergyStr = String(format: "%.1f", sEnergy).padding(toLength: 8, withPad: " ", startingAt: 0)
+    let bEnergyStr = String(format: "%.1f", bEnergy)
+    
+    print("\(pName)   | \(sEnergyStr)    | \(bEnergyStr)")
+}
 print("--------------------------------------------------")

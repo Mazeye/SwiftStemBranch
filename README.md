@@ -15,6 +15,7 @@ It features **astronomical-grade accuracy** for solar terms calculation (based o
 * **High Precision**: Uses simplified VSOP87/Meeus algorithms to calculate Apparent Solar Longitude for precise solar term determination.
 * **True Solar Time**: Automatically corrects time based on longitude and Equation of Time (EoT).
 * **Scientific Day Calculation**: Uses Julian Day algorithms to eliminate timezone and leap year drifts.
+* **Energy Coefficients**: Calculates the dynamic strength of Stems and Branches based on rooting, distance, and seasonal effects.
 
 ## 📦 Installation
 
@@ -74,14 +75,16 @@ Calculate the Ten Gods (Shi Shen) relationships for Stems and Branches (based on
 let pillars = date.fourPillars()
 
 // Get Ten God for a Stem
-// Note: Use .value to get the raw Stem from the wrapper
-let stemTenGod = pillars.tenGod(for: pillars.year.stem.value)
-print(stemTenGod) // e.g., .robWealth
+// Note: Stem/Branch are now wrappers. Property access is transparent.
+let stemTenGod = pillars.tenGod(for: pillars.year.stem)
+print(stemTenGod.name) // e.g., "Rob Wealth"
 
-// Get Ten God for a Branch (Calculated based on Hidden Stem's Main Qi)
-// e.g., Zi (Yang Water) contains Gui (Yin Water). For Jia Wood Day Master, it is Direct Resource.
-let branchTenGod = pillars.tenGod(for: pillars.month.branch.value)
-print(branchTenGod) // e.g., .directResource
+// Accessing energy
+let energy = pillars.month.stem.energy
+print("Month Stem Energy: \(energy)")
+
+// In some cases (e.g., matching or strict type passing), use .value for the raw enum
+let rawStem: Stem = pillars.day.stem.value
 ```
 
 ### 6. Luck Cycles & Annual Luck (Da Yun & Liu Nian)
