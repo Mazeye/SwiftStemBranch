@@ -269,6 +269,53 @@ public struct FourPillars {
         return rels
     }
     
+    /// Evaluates the thermal and moisture balance (Tiao Hou) of the chart.
+    public var thermalBalance: ThermalBalance {
+        var totalTemp = 0.0
+        var totalMoisture = 0.0
+        
+        let pillars = [year, month, day, hour]
+        let monthBranch = month.branch.value
+        
+        for pillar in pillars {
+            let stem = pillar.stem.value
+            let branch = pillar.branch.value
+            let sEnergy = pillar.stem.energy
+            let bEnergy = pillar.branch.energy
+            
+            // 1. Calculate Multipliers based on Life Stage in Month Branch
+            // "Double if Prosperous, Halve if Dying"
+            func getMultiplier(for stage: LifeStage) -> Double {
+                switch stage {
+                case .changSheng, .linGuan, .diWang, .guanDai:
+                    return 2.0
+                case .bing, .si, .mu, .jue:
+                    return 0.5
+                default:
+                    return 1.0
+                }
+            }
+            
+            let sStage = stem.lifeStage(in: monthBranch)
+            let sMultiplier = getMultiplier(for: sStage)
+            
+            // Note: Branches don't strictly have Life Stages like Stems, 
+            // but we can use their Seasonal Prosperity (Wang Xiang Xiu Qiu Si).
+            // For simplicity, we can use the Main Qi Stem's stage.
+            let bStage = branch.benQi.lifeStage(in: monthBranch)
+            let bMultiplier = getMultiplier(for: bStage)
+            
+            // 2. Accumulate weighted scores
+            totalTemp += (stem.thermalBase * sMultiplier * sEnergy)
+            totalTemp += (branch.thermalBase * bMultiplier * bEnergy)
+            
+            totalMoisture += (stem.moistureBase * sMultiplier * sEnergy)
+            totalMoisture += (branch.moistureBase * bMultiplier * bEnergy)
+        }
+        
+        return ThermalBalance(temperature: totalTemp, moisture: totalMoisture)
+    }
+    
     // MARK: - Contextual Types
     
     /// Identifies a specific pillar within the Four Pillars.

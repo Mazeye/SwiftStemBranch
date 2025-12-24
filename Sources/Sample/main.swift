@@ -167,6 +167,18 @@ if !chartRels.isEmpty {
     print("--------------------------------------------------")
 }
 
+print("--------------------------------------------------")
+let tb = pillars.thermalBalance
+let tbTitle = (GanZhiConfig.language == .english) ? "Thermal Balance:" : "调候解析:"
+print(tbTitle)
+
+let tempLabel = (GanZhiConfig.language == .english) ? "  Temperature Score:" : "  寒暖分值:"
+let moistLabel = (GanZhiConfig.language == .english) ? "  Moisture Score:   " : "  湿燥分值:"
+
+print("\(tempLabel) \(String(format: "%.2f", tb.temperature)) (\(tb.temperatureDescription))")
+print("\(moistLabel) \(String(format: "%.2f", tb.moisture)) (\(tb.moistureDescription))")
+
+print("--------------------------------------------------")
 print(L("fiveElements"))
 
 // Calculate Weighted Five Elements
