@@ -157,6 +157,16 @@ print("\(L("method")): \(pattern.method.description)")
 print("\(L("coreTenGod")): \(pattern.tenGod.name)")
 print("--------------------------------------------------")
 
+let chartRels = pillars.relationships
+if !chartRels.isEmpty {
+    let relTitle = (GanZhiConfig.language == .english) ? "Relationships:" : "干支关系:"
+    print(relTitle)
+    for rel in chartRels {
+        print("  \(rel.description)")
+    }
+    print("--------------------------------------------------")
+}
+
 print(L("fiveElements"))
 
 // Calculate Weighted Five Elements
@@ -177,11 +187,8 @@ for (index, pillar) in currentPillars.enumerated() {
     let stem = pillar.stem
     let branch = pillar.branch
     
-    // Five Elements
+    // 1. Stem contribution
     elementScores[stem.fiveElement, default: 0] += stem.energy
-    elementScores[branch.fiveElement, default: 0] += branch.energy
-    
-    // Ten Gods
     if type == .day {
         dayMasterScore += stem.energy
     } else {
@@ -189,8 +196,57 @@ for (index, pillar) in currentPillars.enumerated() {
         tenGodScores[sTenGod, default: 0] += stem.energy
     }
     
-    let bTenGod = pillars.tenGod(for: branch)
-    tenGodScores[bTenGod, default: 0] += branch.energy
+    // 2. Branch hidden stems contribution
+    let branchEnergy = branch.energy
+    let hidden = pillars.hiddenTenGods(for: branch.value)
+    
+    // Ben Qi (1.0)
+    elementScores[hidden.benQi.stem.fiveElement, default: 0] += branchEnergy * 1.0
+    tenGodScores[hidden.benQi.tenGod, default: 0] += branchEnergy * 1.0
+    
+    // Zhong Qi (0.6)
+    if let zhong = hidden.zhongQi {
+        elementScores[zhong.stem.fiveElement, default: 0] += branchEnergy * 0.6
+        tenGodScores[zhong.tenGod, default: 0] += branchEnergy * 0.6
+    }
+    
+    // Yu Qi (0.3)
+    if let yu = hidden.yuQi {
+        elementScores[yu.stem.fiveElement, default: 0] += branchEnergy * 0.3
+        tenGodScores[yu.tenGod, default: 0] += branchEnergy * 0.3
+    }
+}
+
+// 3. San Hui (Directional Harmony) bonus
+for rel in pillars.relationships where rel.type == .branchDirectional {
+    let element: FiveElements
+    switch rel.characters {
+    case "寅卯辰": element = .wood
+    case "巳午未": element = .fire
+    case "申酉戌": element = .metal
+    case "亥子丑": element = .water
+    default: continue
+    }
+    
+    // Add branch energies again
+    for pType in rel.pillars {
+        let branchEnergy: Double
+        switch pType {
+        case .month: branchEnergy = 3.0
+        default: branchEnergy = 1.0
+        }
+        elementScores[element, default: 0] += branchEnergy
+    }
+    
+    // Continuity check (+1.0)
+    // Pillar Types are indices: 0, 1, 2, 3
+    let sortedIndices = rel.pillars.map { $0.rawValue }.sorted()
+    if sortedIndices.count == 3 {
+        // Check if indices are sequential (e.g., 0,1,2 or 1,2,3)
+        if sortedIndices[1] == sortedIndices[0] + 1 && sortedIndices[2] == sortedIndices[1] + 1 {
+            elementScores[element, default: 0] += 1.0
+        }
+    }
 }
 
 let totalScore = elementScores.values.reduce(0, +)

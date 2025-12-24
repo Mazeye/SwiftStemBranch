@@ -15,6 +15,8 @@ Swiftで書かれた高精度な干支（四柱推命）暦ライブラリです
 * **天文学的な精度**：簡略化されたVSOP87/Meeusアルゴリズムを内蔵し、太陽視黄経を計算することで、節入りの瞬間を正確に判定します。
 * **真太陽時（True Solar Time）補正**：経度と均時差（Equation of Time）に基づいて、四柱推命に不可欠な時間補正を自動的に行います。
 * **科学的な日柱計算**：ユリウス通日（Julian Day）アルゴリズムを使用し、タイムゾーンや閏年による日付のずれを排除します。
+* **五行/十神エネルギー係数**：通根、距離、月令の重みに加え、蔵干の比重（本気1.0/中気0.6/余気0.3）や方合（三会）のボーナスを考慮した動的なエネルギー強度を計算します。
+* **干支の関係検出（刑冲会合）**：天干の五合・相剋、地支の六合・三合・三会・六沖・相害・相刑・相破を自動的に識別します。
 
 ## 📦 インストール
 
@@ -74,17 +76,37 @@ print(pillars.hour.character)
 let pillars = date.fourPillars()
 
 // 天干の通変星を取得
-// 注意: ラッパーから元の天干を取得するには .value を使用してください
-let stemTenGod = pillars.tenGod(for: pillars.year.stem.value)
-print(stemTenGod) // 例: .robWealth (劫財)
+// 注意：現在 stem/branch はラッパーを返します。@dynamicMemberLookup により、
+// 以前と同様に直接 character, fiveElement などのプロパティにアクセス可能です。
+let stemTenGod = pillars.tenGod(for: pillars.year.stem)
+print(stemTenGod.name) // 例: "劫財"
 
-// 地支の通変星を取得（蔵干の本気に自動的に基づく）
-// 例：子（陽水）の蔵干は癸（陰水）。甲木の日主に対しては、偏印ではなく正印となります。
-let branchTenGod = pillars.tenGod(for: pillars.month.branch.value)
-print(branchTenGod) // 例: .directResource (印綬)
+// エネルギー係数の取得
+let energy = pillars.month.stem.energy
+print("月干のエネルギー: \(energy)")
+
+// 厳密な型一致やパターンマッチングが必要な場合は、.value で元の列挙型を取得できます
+let rawStem: Stem = pillars.day.stem.value
+
+### 4. 干支の関係検出 (刑冲会合)
+
+四柱間のあらゆる干支の相互作用を一括で取得できます。
+
+```swift
+let relationships = pillars.relationships
+
+for rel in relationships {
+    // 例: "[月柱-日柱] 酉辰地支六合"
+    print(rel.description)
+}
 ```
 
-### 4. 蔵干分析（本気、中気、余気）
+サポートされている検出：
+- **天干**：五合、相剋（相冲）。
+- **地支**：六合、三合、三会（方合）、六沖、相害、相刑（三刑/自刑/二刑）、相破。
+```
+
+### 5. 蔵干分析（本気、中気、余気）
 
 地支に含まれる蔵干（本気、中気、余気）の詳細と、それに対応する通変星を取得できます。
 
@@ -108,7 +130,7 @@ if let yu = hidden.yuQi {
 }
 ```
 
-### 5. 格局判定 (GeJu)
+### 6. 格局判定 (GeJu)
 
 標準的な規則（月支優先、透干優先、建禄/羊刃などの特殊処理）に基づいて、八字の格局を自動的に判定します。
 
@@ -120,7 +142,7 @@ print("判定根拠: \(pattern.method.rawValue)") // 例: "月支本気"
 print("中心通変星: \(pattern.tenGod.rawValue)")  // 例: "正印"
 ```
 
-### 6. 大運と流年 (Luck Cycles & Annual Luck)
+### 7. 大運と流年 (Luck Cycles & Annual Luck)
 
 立運（大運の開始年齢）や大運（10年ごとの運気）を計算し、各年の流年（年運）を導き出すことができます。
 
@@ -153,9 +175,9 @@ for cycle in cycles {
 }
 ```
 
-### 7. 神煞分析 (Shen Sha)
+### 8. 神煞分析 (Shen Sha)
 
-#### 7.1 地支神煞 (Branch-based Stars)
+#### 8.1 地支神煞 (Branch-based Stars)
 
 十二運と五行关系に基づいて、地支に含まれる一般的な神煞（吉凶星）を分析します。
 
@@ -170,7 +192,7 @@ if !stars.isEmpty {
 }
 ```
 
-#### 7.2 全局神煞 (Global Stars)
+#### 8.2 全局神煞 (Global Stars)
 
 命式全体の構造や特定の柱（三奇貴人、魁罡など）に基づく神煞を分析します。
 
@@ -183,9 +205,9 @@ if !globalStars.isEmpty {
 }
 ```
 
-内蔵サポート：三奇貴人、魁罡、金神、十悪大敗、天元一気など。
+内蔵サポート：三奇貴人、魁罡、金神、十惡大敗、天元一氣など。
 
-#### 7.3 カスタムルールの登録
+#### 8.3 カスタムルールの登録
 
 SwiftGanZhi は柔軟な登録メカニズムを提供しており、流派に応じて独自の神煞ルールを定義できます。
 
@@ -202,7 +224,7 @@ ShenShaRegistry.register("四柱純陽") { pillars in
 // .allGlobalShenShaNames を呼び出す際に自動的にチェックされます
 ```
 
-### 8. 多言語対応 (i18n)
+### 9. 多国語対応 (i18n)
 
 簡体字中国語（デフォルト）、繁体字中国語、日本語、英語をサポートしています。
 

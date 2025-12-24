@@ -15,7 +15,8 @@ It features **astronomical-grade accuracy** for solar terms calculation (based o
 * **High Precision**: Uses simplified VSOP87/Meeus algorithms to calculate Apparent Solar Longitude for precise solar term determination.
 * **True Solar Time**: Automatically corrects time based on longitude and Equation of Time (EoT).
 * **Scientific Day Calculation**: Uses Julian Day algorithms to eliminate timezone and leap year drifts.
-* **Energy Coefficients**: Calculates the dynamic strength of Stems and Branches based on rooting, distance, and seasonal effects.
+* **Energy Coefficients**: Calculates the dynamic strength of Stems and Branches based on rooting, distance, and seasonal effects. Advanced scoring includes weighted hidden stems and directional harmony (San Hui) bonuses.
+* **Relationship Detection**: Automatically detects combinations, clashes, harms, punishments, and destructions (刑冲会合).
 
 ## 📦 Installation
 
@@ -85,9 +86,62 @@ print("Month Stem Energy: \(energy)")
 
 // In some cases (e.g., matching or strict type passing), use .value for the raw enum
 let rawStem: Stem = pillars.day.stem.value
+
+### 4. Relationship Detection (刑冲会合)
+
+Detect all interactions between pillars, including celestial and earthly interactions.
+
+```swift
+let relationships = pillars.relationships
+
+for rel in relationships {
+    // e.g., "[Year-Month] Zi-Wu Branch Clash"
+    print(rel.description)
+}
 ```
 
-### 6. Luck Cycles & Annual Luck (Da Yun & Liu Nian)
+Support detection:
+- **Stem**: Combination (五合), Clash (相冲).
+- **Branch**: Six Harmony (六合), Triple Harmony (三合), Directional (三会), Clash (六冲), Harm (六害), Punishment (相刑), Destruction (相破).
+```
+
+### 5. Hidden Stems Analysis (Main, Middle, Residual Qi)
+
+Access the detailed hidden stems and their corresponding Ten Gods for any branch.
+
+```swift
+let pillars = date.fourPillars()
+
+// Get hidden stems and their Ten Gods
+let hidden = pillars.hiddenTenGods(for: pillars.month.branch)
+
+// Main Qi (Stem, TenGods)
+print("Main Qi: \(hidden.benQi.stem.character) [\(hidden.benQi.tenGod.name)]")
+
+// Middle Qi (Optional<(Stem, TenGods)>)
+if let zhong = hidden.zhongQi {
+    print("Middle Qi: \(zhong.stem.character) [\(zhong.tenGod.name)]")
+}
+
+// Residual Qi (Optional<(Stem, TenGods)>)
+if let yu = hidden.yuQi {
+    print("Residual Qi: \(yu.stem.character) [\(yu.tenGod.name)]")
+}
+```
+
+### 6. GeJu (Pattern) Determination
+
+Automatically determine the chart pattern based on traditional rules (Month Qi priority, Stem penetration, etc.).
+
+```swift
+let pattern = pillars.determinePattern()
+
+print("Pattern: \(pattern.description)")      // e.g., "Direct Resource Pattern"
+print("Basis: \(pattern.method.description)") // e.g., "Month Branch Main Qi"
+print("Core Ten God: \(pattern.tenGod.name)")  // e.g., "Direct Resource"
+```
+
+### 7. Luck Cycles & Annual Luck (Da Yun & Liu Nian)
 
 Calculate the Start Age, Major Luck Cycles (Da Yun), and derive Annual Luck (Liu Nian).
 
@@ -120,9 +174,9 @@ for cycle in cycles {
 }
 ```
 
-### 7. Shen Sha Analysis (Stars/Gods)
+### 8. Shen Sha Analysis (Stars/Gods)
 
-#### 7.1 Branch-based Stars
+#### 8.1 Branch-based Stars
 
 Analyze common Shen Sha based on Life Stages and Five Elements relationships within specific branches.
 
@@ -137,7 +191,7 @@ if !stars.isEmpty {
 }
 ```
 
-#### 7.2 Global Stars (Chart-wide Features)
+#### 8.2 Global Stars (Chart-wide Features)
 
 Analyze patterns that apply to the entire chart or specific pillar combinations (e.g., San Qi, Kui Gang).
 
@@ -152,7 +206,7 @@ if !globalStars.isEmpty {
 
 Built-in support: Three Wonders (San Qi), Kui Gang, Golden Spirit, Ten Evils Big Failure, Heavenly Unity, etc.
 
-#### 7.3 Register Custom Rules
+#### 8.3 Register Custom Rules
 
 SwiftGanZhi allows you to define custom rules to support different schools of thought.
 
@@ -169,7 +223,7 @@ ShenShaRegistry.register("Pure Yang") { pillars in
 // The rule will be automatically checked when calling .allGlobalShenShaNames
 ```
 
-### 8. Internationalization (i18n)
+### 9. Internationalization (i18n)
 
 Supports Simplified Chinese (Default), Traditional Chinese, Japanese, and English.
 
