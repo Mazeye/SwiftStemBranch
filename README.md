@@ -240,6 +240,27 @@ print(tenGod.name)    // Output: "Friend"
 
 Note: Use `.name` or `.description` properties instead of `.rawValue` to get localized strings.
 
+### 10. Thermal Balance (Temperature & Moisture)
+
+Analyze the "Han Nuan Zao Shi" (Cold/Warm/Dry/Wet) balance of the chart.
+
+- **Temperature**: Calculated based on Fire element strength (and Life Stages).
+- **Moisture**: Calculated based on Water (mirroring Fire logic) and Earth content.
+- **States**: Automatically detects "Frozen" (Temp ≤ 0) and "Vapor" (Temp > 100) states.
+
+```swift
+let tb = pillars.thermalBalance
+
+print(String(format: "Temperature: %.2f", tb.temperature))
+print(String(format: "Moisture: %.2f", tb.moisture))
+
+if tb.isFrozen {
+    print("Status: Frozen")
+} else if tb.isVapor {
+    print("Status: Vapor")
+}
+```
+
 ## 📄 License
 
 MIT License. See [LICENSE](LICENSE) for details.

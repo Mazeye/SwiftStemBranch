@@ -175,8 +175,15 @@ print(tbTitle)
 let tempLabel = (GanZhiConfig.language == .english) ? "  Temperature Score:" : "  寒暖分值:"
 let moistLabel = (GanZhiConfig.language == .english) ? "  Moisture Score:   " : "  湿燥分值:"
 
-print("\(tempLabel) \(String(format: "%.2f", tb.temperature)) (\(tb.temperatureDescription))")
-print("\(moistLabel) \(String(format: "%.2f", tb.moisture)) (\(tb.moistureDescription))")
+print("\(tempLabel) \(String(format: "%.2f", tb.temperature))")
+
+var moistOutput = "\(moistLabel) \(String(format: "%.2f", tb.moisture))"
+if tb.isFrozen {
+    moistOutput += (GanZhiConfig.language == .english) ? " [Frozen]" : " [冻]"
+} else if tb.isVapor {
+    moistOutput += (GanZhiConfig.language == .english) ? " [Vapor]" : " [气]"
+}
+print(moistOutput)
 
 print("--------------------------------------------------")
 print(L("fiveElements"))

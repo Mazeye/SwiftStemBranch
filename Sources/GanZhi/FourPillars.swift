@@ -329,27 +329,41 @@ public struct FourPillars {
                 processHiddenFire(stem: yu.stem, hiddenWeight: 0.5)
             }
             
-            // 2. Moisture Calculation (Existing logic)
-            // Multipliers for moisture logic
-            func getMoistureMultiplier(for stage: LifeStage) -> Double {
-                switch stage {
-                case .changSheng, .linGuan, .diWang, .guanDai:
-                    return 2.0
-                case .bing, .si, .mu, .jue:
-                    return 0.5
-                default:
-                    return 1.0
+            // 2. Moisture Calculation (Mirroring Fire Logic)
+            // Water Stems: Gui (癸) and Ren (壬)
+            if stem.waterMoistureBase > 0 {
+                // Weight based on Life Stage in the LOCAL branch
+                let weight = getLifeStageMultiplier(for: stem, in: branch)
+                
+                // Note: User requested to REMOVE month coefficient for moisture
+                
+                totalMoisture += (stem.waterMoistureBase * weight * sEnergy)
+            }
+            
+            // Hidden Stems (all branches contribute via their hidden water)
+            func processHiddenWater(stem: Stem, hiddenWeight: Double) {
+                if stem.waterMoistureBase > 0 {
+                    let weight = hiddenWeight
+                    totalMoisture += (stem.waterMoistureBase * weight * branchEnergy)
                 }
             }
             
-            let sStage = stem.lifeStage(in: monthBranch)
-            let sMultiplier = getMoistureMultiplier(for: sStage)
-            let bStage = branch.benQi.lifeStage(in: monthBranch)
-            let bMultiplier = getMoistureMultiplier(for: bStage)
+            processHiddenWater(stem: hidden.benQi.stem, hiddenWeight: 2.0)
+            if let zhong = hidden.zhongQi {
+                processHiddenWater(stem: zhong.stem, hiddenWeight: 1)
+            }
+            if let yu = hidden.yuQi {
+                processHiddenWater(stem: yu.stem, hiddenWeight: 0.5)
+            }
             
-            totalMoisture += (stem.moistureBase * sMultiplier * sEnergy)
-            totalMoisture += (branch.moistureBase * bMultiplier * bEnergy)
+            // 3. Earth Calculation (Additive)
+            // Add Earth Moisture Base from Stems and Branches directly
+            totalMoisture += (stem.earthMoistureBase * sEnergy)
+            totalMoisture += (branch.earthMoistureBase * bEnergy)
         }
+        
+        // User requested to clamp negative moisture to 0
+        totalMoisture = max(0, totalMoisture)
         
         return ThermalBalance(temperature: totalTemp, moisture: totalMoisture)
     }
