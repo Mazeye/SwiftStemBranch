@@ -80,13 +80,13 @@ public struct ThermalBalance {
 }
 
 extension Stem {
-    var thermalBase: Double {
-        switch self.fiveElement {
-        case .fire:  return 3.0    // 炎上
-        case .wood:  return 1.0    // 少阳升腾
-        case .earth: return 0.0    // 中和
-        case .metal: return -1.0   // 少阴沉降
-        case .water: return -3.0   // 滋润向下 (Cold)
+    /// Temperature weight for fire stems.
+    /// Non-fire stems return 0.0 as temperature depends only on Fire.
+    var fireTemperatureBase: Double {
+        switch self {
+        case .bing: return 10.0
+        case .ding: return 6.0
+        default:    return 0.0
         }
     }
     
@@ -103,12 +103,48 @@ extension Stem {
 }
 
 extension Branch {
-    var thermalBase: Double {
+    /// Baseline temperature contribution for the month branch.
+    public var thermalBaseline: Double {
         switch self {
-        case .si, .wu, .wei: return 3.0   // 夏季
-        case .yin, .mao, .chen: return 1.0 // 春季
-        case .shen, .you, .xu: return -1.0 // 秋季
-        case .hai, .zi, .chou: return -3.0 // 冬季
+        case .zi:   return -5
+        case .chou: return -10
+        case .yin:  return 1
+        case .mao:  return 3
+        case .chen: return 9
+        case .si:   return 15
+        case .wu:   return 20
+        case .wei:  return 15
+        case .shen: return 9
+        case .you:  return 3
+        case .xu:   return 1
+        case .hai:  return -2
+        }
+    }
+    
+    /// Monthly multiplier for Bing Fire (丙火) based on the 12 Life Stages.
+    public var bingFireCoefficient: Double {
+        switch Stem.bing.lifeStage(in: self) {
+        case .changSheng: return 1.2
+        case .muYu:       return 1.3
+        case .guanDai:    return 1.5
+        case .linGuan:    return 1.8
+        case .diWang:     return 2.0
+        case .shuai:      return 1.0
+        case .bing:       return 0.8
+        case .si:         return 0.5
+        case .mu:         return 0.6
+        case .jue:        return 0.5
+        case .tai:        return 0.7
+        case .yang:       return 0.9
+        }
+    }
+
+    /// Temperature contribution for fire branches.
+    var fireTemperatureBase: Double {
+        switch self {
+        case .si: return 8.0
+        case .wu: return 10.0
+        default:  return 0.0
         }
     }
     
