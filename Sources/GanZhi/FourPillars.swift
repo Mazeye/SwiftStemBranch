@@ -321,12 +321,12 @@ public struct FourPillars {
                 }
             }
             
-            processHiddenFire(stem: hidden.benQi.stem, hiddenWeight: 1.0)
+            processHiddenFire(stem: hidden.benQi.stem, hiddenWeight: 2.0)
             if let zhong = hidden.zhongQi {
-                processHiddenFire(stem: zhong.stem, hiddenWeight: 0.6)
+                processHiddenFire(stem: zhong.stem, hiddenWeight: 1)
             }
             if let yu = hidden.yuQi {
-                processHiddenFire(stem: yu.stem, hiddenWeight: 0.3)
+                processHiddenFire(stem: yu.stem, hiddenWeight: 0.5)
             }
             
             // 2. Moisture Calculation (Existing logic)

@@ -84,8 +84,8 @@ extension Stem {
     /// Non-fire stems return 0.0 as temperature depends only on Fire.
     var fireTemperatureBase: Double {
         switch self {
-        case .bing: return 10.0
-        case .ding: return 6.0
+        case .bing: return 15
+        case .ding: return 5
         default:    return 0.0
         }
     }
@@ -142,8 +142,8 @@ extension Branch {
     /// Temperature contribution for fire branches.
     var fireTemperatureBase: Double {
         switch self {
-        case .si: return 8.0
-        case .wu: return 10.0
+        case .si: return 6.0
+        case .wu: return 8.0
         default:  return 0.0
         }
     }
