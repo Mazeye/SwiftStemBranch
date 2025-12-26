@@ -174,4 +174,59 @@ final class PatternTests: XCTestCase {
         XCTAssertEqual(pattern.method, .monthBranchMainQi)
         XCTAssertEqual(pattern.tenGod, .directResource, "Should be Direct Resource Pattern")
     }
+
+    func testDualPattern() {
+        GanZhiConfig.language = .simplifiedChinese
+        
+        // Day Master: Jia (Yang Wood)
+        // Month: Yin (Wood) -> Lin Guan -> Jian Lu Ge (建禄格)
+        // Ten God: Bi Jian (Friend)
+        
+        // If year and hour are Wu (Fire) with Bing (Fire Stem), Fire strength will be very high.
+        // Bing relative to Jia is Eating God (食神).
+        
+        let pillars = makePillars(
+            year: (.bing, .wu),
+            month: (.jia, .yin),
+            day: (.jia, .zi),
+            hour: (.bing, .wu)
+        )
+        
+        let strengths = pillars.tenGodStrengths
+        let friendStrength = strengths[.friend, default: 0]
+        let eatingGodStrength = strengths[.eatingGod, default: 0]
+        
+        print("Friend Strength: \(friendStrength)")
+        print("Eating God Strength: \(eatingGodStrength)")
+        
+        let pattern = pillars.determinePattern()
+        print("Pattern Description: \(pattern.description)")
+        
+        if eatingGodStrength > friendStrength {
+            XCTAssertTrue(pattern.description.contains("/"))
+            XCTAssertTrue(pattern.description.contains("食神格"))
+            XCTAssertTrue(pattern.description.contains("建禄格"))
+        }
+    }
+    
+    func testFollowSevenKillings() {
+        GanZhiConfig.language = .simplifiedChinese
+        
+        // Day Master: Yi (Yin Wood)
+        // Branches: All You (酉), which contain only Xin (Metal) -> No root for Yi.
+        // Stems: All Xin (Metal) -> Seven Killings for Yi.
+        let pillars = makePillars(
+            year: (.xin, .you),
+            month: (.xin, .you),
+            day: (.yi, .you),
+            hour: (.xin, .you)
+        )
+        
+        let pattern = pillars.determinePattern()
+        
+        XCTAssertEqual(pattern.tenGod, .sevenKillings)
+        XCTAssertEqual(pattern.method, .followSevenKillings)
+        XCTAssertEqual(pattern.description, "特殊七杀格（从格）")
+        XCTAssertEqual(pattern.methodDescription, "身弱杀强，建议去印比从杀")
+    }
 }

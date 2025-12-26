@@ -5,12 +5,14 @@ public struct Pattern: CustomStringConvertible {
     /// The method used to determine the pattern.
     public enum DeterminationMethod: String, CustomStringConvertible {
         case jianLu = "建禄格" // Month Branch is Lin Guan
-        case yueRen = "月刃格" // Yin Day Master Month Branch is Di Wang
         case yangRen = "羊刃格" // Yang Day Master Month Branch is Di Wang
         case transpiredMonthStem = "月支藏干透出月干"
         case transpiredYearStem = "月支藏干透出年干"
         case transpiredHourStem = "月支藏干透出时干"
         case monthBranchMainQi = "月支本气"
+        case dominantStrength = "十神成势"
+        case yueRen = "月刃格"
+        case followSevenKillings = "身弱杀强，建议去印比从杀"
         case special = "特殊格局"
         
         public var description: String {
@@ -20,34 +22,40 @@ public struct Pattern: CustomStringConvertible {
             case .traditionalChinese:
                 switch self {
                 case .jianLu: return "建祿格"
-                case .yueRen: return "月刃格"
                 case .yangRen: return "羊刃格"
                 case .transpiredMonthStem: return "月支藏干透出月干"
                 case .transpiredYearStem: return "月支藏干透出年干"
                 case .transpiredHourStem: return "月支藏干透出時干"
                 case .monthBranchMainQi: return "月支本氣"
+                case .dominantStrength: return "十神成勢"
+                case .yueRen: return "月刃格"
+                case .followSevenKillings: return "身弱殺強，建議去印比從殺"
                 case .special: return "特殊格局"
                 }
             case .japanese:
                 switch self {
                 case .jianLu: return "建禄格"
-                case .yueRen: return "月刃格"
                 case .yangRen: return "羊刃格"
                 case .transpiredMonthStem: return "月支蔵干の月干透出"
                 case .transpiredYearStem: return "月支蔵干の年干透出"
                 case .transpiredHourStem: return "月支蔵干の時干透出"
                 case .monthBranchMainQi: return "月支本気"
+                case .dominantStrength: return "通変星が勢力を成した"
+                case .yueRen: return "月刃格"
+                case .followSevenKillings: return "身弱殺強、印比を捨てて殺に従うべし"
                 case .special: return "特殊格局"
                 }
             case .english:
                 switch self {
                 case .jianLu: return "Jian Lu Pattern"
-                case .yueRen: return "Yue Ren Pattern"
                 case .yangRen: return "Yang Ren Pattern"
                 case .transpiredMonthStem: return "Month Branch Hidden Stem transpired in Month"
                 case .transpiredYearStem: return "Month Branch Hidden Stem transpired in Year"
                 case .transpiredHourStem: return "Month Branch Hidden Stem transpired in Hour"
                 case .monthBranchMainQi: return "Month Branch Main Qi"
+                case .dominantStrength: return "The ten god is dominant"
+                case .yueRen: return "Yue Ren Pattern"
+                case .followSevenKillings: return "Weak self with strong killer, follow the killer"
                 case .special: return "Special Pattern"
                 }
             }
@@ -64,23 +72,25 @@ public struct Pattern: CustomStringConvertible {
     /// If nil, the default name is tenGod + "格" (localized).
     public let customName: String?
     
-    public init(tenGod: TenGods, method: DeterminationMethod, customName: String? = nil) {
+    /// An optional auxiliary Ten God that is stronger than the primary one.
+    public let auxiliaryTenGod: TenGods?
+    
+    /// The method used to find the auxiliary pattern.
+    public let auxiliaryMethod: DeterminationMethod?
+    
+    public init(tenGod: TenGods, method: DeterminationMethod, customName: String? = nil, auxiliaryTenGod: TenGods? = nil, auxiliaryMethod: DeterminationMethod? = nil) {
         self.tenGod = tenGod
         self.method = method
         self.customName = customName
+        self.auxiliaryTenGod = auxiliaryTenGod
+        self.auxiliaryMethod = auxiliaryMethod
     }
     
     public var description: String {
-        // If it's a special pattern method (JianLu/YueRen/YangRen), ignore tenGod name and use Method description/name logic.
-        switch method {
-        case .jianLu, .yueRen, .yangRen:
-            // These methods have their own specific names which are essentially the pattern names.
-            // Using method.description is correct.
-            return method.description
-        default:
-            // Standard TenGod pattern
-            if let name = customName {
-                return name
+        func getName(for tg: TenGods, withMethod m: DeterminationMethod?) -> String {
+            if tg == .friend { return DeterminationMethod.jianLu.description }
+            if tg == .robWealth {
+                return (m == .yangRen) ? DeterminationMethod.yangRen.description : DeterminationMethod.yueRen.description
             }
             
             let suffix: String
@@ -90,9 +100,30 @@ public struct Pattern: CustomStringConvertible {
             case .english:
                 suffix = " Pattern"
             }
-            
-            return tenGod.name + suffix
+            return tg.name + suffix
         }
+
+        let primaryDescription: String
+        if let name = customName {
+            primaryDescription = name
+        } else {
+            primaryDescription = getName(for: tenGod, withMethod: method)
+        }
+        
+        if let aux = auxiliaryTenGod {
+            let auxName = getName(for: aux, withMethod: auxiliaryMethod)
+            return "\(primaryDescription)/\(auxName)"
+        } else {
+            return primaryDescription
+        }
+    }
+    
+    /// The combined description of the determination method(s).
+    public var methodDescription: String {
+        if let auxMethod = auxiliaryMethod {
+            return "\(method.description)/\(auxMethod.description)"
+        }
+        return method.description
     }
 }
 
@@ -102,70 +133,77 @@ extension FourPillars {
         let dayStem = self.day.stem
         let monthBranch = self.month.branch
         let hiddenStems = monthBranch.hiddenStems
-        
-        // 1. Check Special Patterns: Jian Lu and Yue Ren
         let stage = dayStem.value.lifeStage(in: monthBranch.value)
         
-        if stage == .linGuan {
-            // 建禄格 (Jian Lu Ge)
-            // No customName needed, Pattern.description handles it via method.description
-            return Pattern(tenGod: .friend, method: .jianLu)
-        }
-        
-        if stage == .diWang {
-            // 月刃格 (Yue Ren Ge) / 羊刃格 (Yang Ren Ge)
-            if dayStem.yinYang == .yang {
-                return Pattern(tenGod: .robWealth, method: .yangRen)
-            } else {
-                return Pattern(tenGod: .robWealth, method: .yueRen)
+        func getPrimary() -> Pattern {
+            if stage == .linGuan { return Pattern(tenGod: .friend, method: .jianLu) }
+            if stage == .diWang {
+                return (dayStem.yinYang == .yang) ? Pattern(tenGod: .robWealth, method: .yangRen) : Pattern(tenGod: .robWealth, method: .yueRen)
             }
-        }
-        
-        // 2. Check Transpired Stems
-        var candidates: [Pattern] = []
-        
-        if hiddenStems.contains(self.month.stem.value) {
-            candidates.append(Pattern(tenGod: self.tenGod(for: self.month.stem), method: .transpiredMonthStem))
-        }
-        if hiddenStems.contains(self.year.stem.value) {
-             candidates.append(Pattern(tenGod: self.tenGod(for: self.year.stem), method: .transpiredYearStem))
-        }
-        if hiddenStems.contains(self.hour.stem.value) {
-             candidates.append(Pattern(tenGod: self.tenGod(for: self.hour.stem), method: .transpiredHourStem))
-        }
-        
-        if let monthPattern = candidates.first(where: { $0.method == .transpiredMonthStem }) {
-            if monthPattern.tenGod != .friend && monthPattern.tenGod != .robWealth {
-                return monthPattern
-            }
-        }
-        
-        for hiddenStem in hiddenStems {
-            let tenGod = self.tenGod(for: hiddenStem)
-            if tenGod == .friend || tenGod == .robWealth { continue }
             
-            if self.month.stem.value == hiddenStem {
-                return Pattern(tenGod: tenGod, method: .transpiredMonthStem)
+            var candidates: [Pattern] = []
+            if hiddenStems.contains(self.month.stem.value) { candidates.append(Pattern(tenGod: self.tenGod(for: self.month.stem), method: .transpiredMonthStem)) }
+            if hiddenStems.contains(self.year.stem.value) { candidates.append(Pattern(tenGod: self.tenGod(for: self.year.stem), method: .transpiredYearStem)) }
+            if hiddenStems.contains(self.hour.stem.value) { candidates.append(Pattern(tenGod: self.tenGod(for: self.hour.stem), method: .transpiredHourStem)) }
+            
+            if let monthPattern = candidates.first(where: { $0.method == .transpiredMonthStem }), monthPattern.tenGod != .friend, monthPattern.tenGod != .robWealth { return monthPattern }
+            
+            for hiddenStem in hiddenStems {
+                let tenGod = self.tenGod(for: hiddenStem)
+                if tenGod == .friend || tenGod == .robWealth { continue }
+                if self.month.stem.value == hiddenStem { return Pattern(tenGod: tenGod, method: .transpiredMonthStem) }
+                if self.year.stem.value == hiddenStem { return Pattern(tenGod: tenGod, method: .transpiredYearStem) }
+                if self.hour.stem.value == hiddenStem { return Pattern(tenGod: tenGod, method: .transpiredHourStem) }
             }
-            if self.year.stem.value == hiddenStem {
-                return Pattern(tenGod: tenGod, method: .transpiredYearStem)
-            }
-            if self.hour.stem.value == hiddenStem {
-                return Pattern(tenGod: tenGod, method: .transpiredHourStem)
+            
+            let mainQi = monthBranch.mainQi
+            let mainQiTenGod = TenGods.calculate(dayMaster: dayStem.value, targetElement: mainQi.fiveElement, targetYinYang: mainQi.yinYang)
+            if mainQiTenGod != .friend && mainQiTenGod != .robWealth { return Pattern(tenGod: mainQiTenGod, method: .monthBranchMainQi) }
+            
+            return candidates.first(where: { $0.method == .transpiredMonthStem }) ?? candidates.first ?? Pattern(tenGod: mainQiTenGod, method: .monthBranchMainQi)
+        }
+        
+        let primary = getPrimary()
+
+        // 3. Check Ten God Strength for auxiliary pattern
+        let strengths = self.tenGodStrengths
+        let primaryStrength = strengths[primary.tenGod, default: 0]
+        
+        // Find strongest non-peer (not Friend or Rob Wealth)
+        let nonPeers = strengths.filter { $0.key != .friend && $0.key != .robWealth }
+        if let strongest = nonPeers.max(by: { $0.value < $1.value }) {
+            if strongest.value > primaryStrength && strongest.key != primary.tenGod {
+                return Pattern(tenGod: primary.tenGod, method: primary.method, customName: primary.customName, auxiliaryTenGod: strongest.key, auxiliaryMethod: .dominantStrength)
             }
         }
         
-        let mainQi = monthBranch.mainQi
-        let mainQiTenGod = TenGods.calculate(dayMaster: dayStem.value, targetElement: mainQi.fiveElement, targetYinYang: mainQi.yinYang)
+        // 4. Check Special Seven Killings Pattern (From Ge / Follow the Killer)
+        let totalStrength = strengths.values.reduce(0, +)
+        let supportStrength = strengths[.directResource, default: 0] + strengths[.friend, default: 0]
         
-        if mainQiTenGod != .friend && mainQiTenGod != .robWealth {
-            return Pattern(tenGod: mainQiTenGod, method: .monthBranchMainQi)
+        // Conditions:
+        // - DM is Yin
+        // - No root (Ben Qi or Yu Qi) in any branch
+        // - Primary is Seven Killings and no auxiliary
+        // - Seven Killings strength > 50%
+        // - Support (Direct Resource + non-DM Friend) <= 1.0
+        if dayStem.yinYang == .yin && primary.tenGod == .sevenKillings {
+            // Check roots
+            let branches = [self.year.branch.value, self.month.branch.value, self.day.branch.value, self.hour.branch.value]
+            let hasRoot = branches.contains { b in 
+                b.benQi == dayStem.value || b.yuQi == dayStem.value
+            }
+            
+            if !hasRoot {
+                let primaryStrengthPercentage = (totalStrength > 0) ? (primaryStrength / totalStrength) : 0
+                // supportStrength includes DM energy (1.0). 
+                // So supportStrength <= 2.0 means at most one extra floating Zheng Yin or Bi Jian.
+                if primaryStrengthPercentage > 0.5 && supportStrength <= 2.0 {
+                    return Pattern(tenGod: .sevenKillings, method: .followSevenKillings, customName: "特殊七杀格（从格）")
+                }
+            }
         }
         
-        if let bestPeerCandidate = candidates.first(where: { $0.method == .transpiredMonthStem }) ?? candidates.first {
-             return bestPeerCandidate
-        }
-        
-        return Pattern(tenGod: mainQiTenGod, method: .monthBranchMainQi)
+        return primary
     }
 }

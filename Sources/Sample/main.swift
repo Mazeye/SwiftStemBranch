@@ -153,7 +153,7 @@ print("--------------------------------------------------")
 print(L("pattern"))
 let pattern = pillars.determinePattern()
 print("\(L("patternName")): \(pattern.description)")
-print("\(L("method")): \(pattern.method.description)")
+print("\(L("method")): \(pattern.methodDescription)")
 print("\(L("coreTenGod")): \(pattern.tenGod.name)")
 print("--------------------------------------------------")
 
@@ -188,32 +188,18 @@ print(moistOutput)
 print("--------------------------------------------------")
 print(L("fiveElements"))
 
-// Calculate Weighted Five Elements
+// Calculate Weighted Five Elements (Keep this as is for now as it's not in the library yet)
 var elementScores: [FiveElements: Double] = [
     .wood: 0, .fire: 0, .earth: 0, .metal: 0, .water: 0
 ]
-// Calculate Weighted Ten Gods
-var tenGodScores: [TenGods: Double] = [
-    .friend: 0, .robWealth: 0, .eatingGod: 0, .hurtingOfficer: 0,
-    .directWealth: 0, .indirectWealth: 0, .directOfficer: 0, .sevenKillings: 0,
-    .directResource: 0, .indirectResource: 0
-]
-var dayMasterScore: Double = 0.0
 
 let currentPillars = [pillars.year, pillars.month, pillars.day, pillars.hour]
 for (index, pillar) in currentPillars.enumerated() {
-    let type = FourPillars.PillarType.allCases[index]
     let stem = pillar.stem
     let branch = pillar.branch
     
     // 1. Stem contribution
     elementScores[stem.fiveElement, default: 0] += stem.energy
-    if type == .day {
-        dayMasterScore += stem.energy
-    } else {
-        let sTenGod = pillars.tenGod(for: stem)
-        tenGodScores[sTenGod, default: 0] += stem.energy
-    }
     
     // 2. Branch hidden stems contribution
     let branchEnergy = branch.energy
@@ -221,18 +207,15 @@ for (index, pillar) in currentPillars.enumerated() {
     
     // Ben Qi (1.0)
     elementScores[hidden.benQi.stem.fiveElement, default: 0] += branchEnergy * 1.0
-    tenGodScores[hidden.benQi.tenGod, default: 0] += branchEnergy * 1.0
     
     // Zhong Qi (0.6)
     if let zhong = hidden.zhongQi {
         elementScores[zhong.stem.fiveElement, default: 0] += branchEnergy * 0.6
-        tenGodScores[zhong.tenGod, default: 0] += branchEnergy * 0.6
     }
     
     // Yu Qi (0.3)
     if let yu = hidden.yuQi {
         elementScores[yu.stem.fiveElement, default: 0] += branchEnergy * 0.3
-        tenGodScores[yu.tenGod, default: 0] += branchEnergy * 0.3
     }
 }
 
@@ -247,26 +230,22 @@ for rel in pillars.relationships where rel.type == .branchDirectional {
     default: continue
     }
     
-    // Add branch energies again
     for pType in rel.pillars {
-        let branchEnergy: Double
-        switch pType {
-        case .month: branchEnergy = 3.0
-        default: branchEnergy = 1.0
-        }
+        let branchEnergy: Double = (pType == .month) ? 3.0 : 1.0
         elementScores[element, default: 0] += branchEnergy
     }
     
-    // Continuity check (+1.0)
-    // Pillar Types are indices: 0, 1, 2, 3
     let sortedIndices = rel.pillars.map { $0.rawValue }.sorted()
     if sortedIndices.count == 3 {
-        // Check if indices are sequential (e.g., 0,1,2 or 1,2,3)
         if sortedIndices[1] == sortedIndices[0] + 1 && sortedIndices[2] == sortedIndices[1] + 1 {
             elementScores[element, default: 0] += 1.0
         }
     }
 }
+
+// Use library's Ten God strength calculation
+let tenGodScores = pillars.tenGodStrengths
+let dayMasterScore = pillars.day.stem.energy
 
 let totalScore = elementScores.values.reduce(0, +)
 
