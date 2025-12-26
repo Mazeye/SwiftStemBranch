@@ -10,6 +10,9 @@ let package = Package(
         .executable(
             name: "Sample",
             targets: ["Sample"]),
+        .executable(
+            name: "BaziDistribution",
+            targets: ["BaziDistribution"]),
     ],
     dependencies: [],
     targets: [
@@ -18,6 +21,9 @@ let package = Package(
             dependencies: []),
         .executableTarget(
             name: "Sample",
+            dependencies: ["GanZhi"]),
+        .executableTarget(
+            name: "BaziDistribution",
             dependencies: ["GanZhi"]),
         .testTarget(
             name: "GanZhiTests",

@@ -271,11 +271,22 @@ public struct FourPillars {
     
     /// Evaluates the thermal and moisture balance (Tiao Hou) of the chart.
     public var thermalBalance: ThermalBalance {
-        var totalTemp = 0.0
+        let monthBranch = month.branch.value
+        var totalTemp = monthBranch.thermalBaseline
         var totalMoisture = 0.0
         
         let pillars = [year, month, day, hour]
-        let monthBranch = month.branch.value
+        
+        // Helper to get Life Stage based multiplier
+        // Di Wang (Peak) -> 2.0, Si/Jue (Death/Extinction) -> 0.5, Others -> 1.0
+        func getLifeStageMultiplier(for stem: Stem, in branch: Branch) -> Double {
+            let stage = stem.lifeStage(in: branch)
+            switch stage {
+            case .diWang: return 2.0
+            case .si, .jue: return 0.5
+            default: return 1.0
+            }
+        }
         
         for pillar in pillars {
             let stem = pillar.stem.value
@@ -283,35 +294,76 @@ public struct FourPillars {
             let sEnergy = pillar.stem.energy
             let bEnergy = pillar.branch.energy
             
-            // 1. Calculate Multipliers based on Life Stage in Month Branch
-            // "Double if Prosperous, Halve if Dying"
-            func getMultiplier(for stage: LifeStage) -> Double {
-                switch stage {
-                case .changSheng, .linGuan, .diWang, .guanDai:
-                    return 2.0
-                case .bing, .si, .mu, .jue:
-                    return 0.5
-                default:
-                    return 1.0
+            // 1. Temperature Calculation (Fire focus)
+            // Heavenly Stems: Bing (丙) and Ding (丁)
+            if stem.fireTemperatureBase > 0 {
+                // Weight based on Life Stage in the LOCAL branch
+                var weight = getLifeStageMultiplier(for: stem, in: branch)
+                
+                // Bing fire also has a monthly coefficient (Dual adjustment)
+                // Ding fire only has local adjustment
+                if stem == .bing {
+                    weight *= monthBranch.bingFireCoefficient
+                }
+                
+                totalTemp += (stem.fireTemperatureBase * weight * sEnergy)
+            }
+            
+            // Hidden Stems (all branches contribute via their hidden fire)
+            let branchEnergy = pillar.branch.energy
+            let hidden = hiddenTenGods(for: branch)
+            
+            // Helper to process hidden fire
+            func processHiddenFire(stem: Stem, hiddenWeight: Double) {
+                if stem.fireTemperatureBase > 0 {
+                    let weight = hiddenWeight
+                    totalTemp += (stem.fireTemperatureBase * weight * branchEnergy)
                 }
             }
             
-            let sStage = stem.lifeStage(in: monthBranch)
-            let sMultiplier = getMultiplier(for: sStage)
+            processHiddenFire(stem: hidden.benQi.stem, hiddenWeight: 2.0)
+            if let zhong = hidden.zhongQi {
+                processHiddenFire(stem: zhong.stem, hiddenWeight: 1)
+            }
+            if let yu = hidden.yuQi {
+                processHiddenFire(stem: yu.stem, hiddenWeight: 0.5)
+            }
             
-            // Note: Branches don't strictly have Life Stages like Stems, 
-            // but we can use their Seasonal Prosperity (Wang Xiang Xiu Qiu Si).
-            // For simplicity, we can use the Main Qi Stem's stage.
-            let bStage = branch.benQi.lifeStage(in: monthBranch)
-            let bMultiplier = getMultiplier(for: bStage)
+            // 2. Moisture Calculation (Mirroring Fire Logic)
+            // Water Stems: Gui (癸) and Ren (壬)
+            if stem.waterMoistureBase > 0 {
+                // Weight based on Life Stage in the LOCAL branch
+                let weight = getLifeStageMultiplier(for: stem, in: branch)
+                
+                // Note: User requested to REMOVE month coefficient for moisture
+                
+                totalMoisture += (stem.waterMoistureBase * weight * sEnergy)
+            }
             
-            // 2. Accumulate weighted scores
-            totalTemp += (stem.thermalBase * sMultiplier * sEnergy)
-            totalTemp += (branch.thermalBase * bMultiplier * bEnergy)
+            // Hidden Stems (all branches contribute via their hidden water)
+            func processHiddenWater(stem: Stem, hiddenWeight: Double) {
+                if stem.waterMoistureBase > 0 {
+                    let weight = hiddenWeight
+                    totalMoisture += (stem.waterMoistureBase * weight * branchEnergy)
+                }
+            }
             
-            totalMoisture += (stem.moistureBase * sMultiplier * sEnergy)
-            totalMoisture += (branch.moistureBase * bMultiplier * bEnergy)
+            processHiddenWater(stem: hidden.benQi.stem, hiddenWeight: 2.0)
+            if let zhong = hidden.zhongQi {
+                processHiddenWater(stem: zhong.stem, hiddenWeight: 1)
+            }
+            if let yu = hidden.yuQi {
+                processHiddenWater(stem: yu.stem, hiddenWeight: 0.5)
+            }
+            
+            // 3. Earth Calculation (Additive)
+            // Add Earth Moisture Base from Stems and Branches directly
+            totalMoisture += (stem.earthMoistureBase * sEnergy)
+            totalMoisture += (branch.earthMoistureBase * bEnergy)
         }
+        
+        // User requested to clamp negative moisture to 0
+        totalMoisture = max(0, totalMoisture)
         
         return ThermalBalance(temperature: totalTemp, moisture: totalMoisture)
     }
