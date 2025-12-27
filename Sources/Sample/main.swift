@@ -344,7 +344,7 @@ func getStemBranch(forYear year: Int) -> StemBranch {
     return StemBranch.from(index: index)
 }
 
-let birthYear = Calendar.current.component(.year, from: date)
+let birthYear = Calendar(identifier: .gregorian).component(.year, from: date)
 
 for cycle in cycles {
     print(cycle.description)

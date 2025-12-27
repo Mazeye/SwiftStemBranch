@@ -49,7 +49,11 @@ public struct LuckCalculator {
         let isForward = (gender == .male && isYangYear) || (gender == .female && !isYangYear)
         
         let startAge = calculateStartAge()
-        let startYear = Calendar.current.component(.year, from: birthDate)
+        
+        // Ensure we use Gregorian Calendar for Year calculations to match standard era
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone.current // Preserve timezone if needed
+        let startYear = calendar.component(.year, from: birthDate)
         
         var cycles: [MajorCycle] = []
         var currentSB = pillars.month.value // Start from Month Pillar (using .value for raw StemBranch)
