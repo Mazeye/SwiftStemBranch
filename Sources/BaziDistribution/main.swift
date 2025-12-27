@@ -43,17 +43,23 @@ func runExperiment() {
         }
     }
     
-    func calculateStats(_ data: [Double]) -> (min: Double, q1: Double, median: Double, q3: Double, max: Double, avg: Double) {
+    struct Stats {
+        let avg: Double
+        let percentiles: [Int: Double] // 0, 10, 20... 100
+    }
+
+    func calculateStats(_ data: [Double]) -> Stats {
         let count = data.count
-        if count == 0 { return (0, 0, 0, 0, 0, 0) }
+        if count == 0 { return Stats(avg: 0, percentiles: [:]) }
         let sorted = data.sorted()
-        let min = sorted[0]
-        let q1 = sorted[count / 4]
-        let median = sorted[count / 2]
-        let q3 = sorted[count * 3 / 4]
-        let max = sorted[count - 1]
         let avg = data.reduce(0, +) / Double(count)
-        return (min, q1, median, q3, max, avg)
+        
+        var percentiles: [Int: Double] = [:]
+        for i in stride(from: 0, through: 100, by: 10) {
+            let index = min(count - 1, Int(Double(count - 1) * Double(i) / 100.0))
+            percentiles[i] = sorted[index]
+        }
+        return Stats(avg: avg, percentiles: percentiles)
     }
     
     print("\n--------------------------------------------------")
@@ -71,34 +77,32 @@ func runExperiment() {
     for element in FiveElements.allCases {
         if let data = elementCollects[element] {
             let stats = calculateStats(data)
-            print("\(element.name.padding(toLength: 4, withPad: " ", startingAt: 0)) | " +
-                  "Avg: \(String(format: "%5.2f", stats.avg)) | " +
-                  "Min: \(String(format: "%5.2f", stats.min)) | " +
-                  "Q1: \(String(format: "%5.2f", stats.q1)) | " +
-                  "Med: \(String(format: "%5.2f", stats.median)) | " +
-                  "Q3: \(String(format: "%5.2f", stats.q3)) | " +
-                  "Max: \(String(format: "%5.2f", stats.max))")
+            let p0 = String(format: "%5.2f", stats.percentiles[0] ?? 0)
+            let p50 = String(format: "%5.2f", stats.percentiles[50] ?? 0)
+            let p100 = String(format: "%5.2f", stats.percentiles[100] ?? 0)
+            let avg = String(format: "%5.2f", stats.avg)
+            
+            print("\(element.name.padding(toLength: 4, withPad: " ", startingAt: 0)) | Avg: \(avg) | Min: \(p0) | Med: \(p50) | Max: \(p100)")
         }
     }
 
     let tempStats = calculateStats(temperatures)
     let moistStats = calculateStats(moistures)
     
-    print("\n[Thermal Balance Distribution]")
-    print("Temp   | " +
-          "Avg: \(String(format: "%5.2f", tempStats.avg)) | " +
-          "Min: \(String(format: "%5.2f", tempStats.min)) | " +
-          "Q1: \(String(format: "%5.2f", tempStats.q1)) | " +
-          "Med: \(String(format: "%5.2f", tempStats.median)) | " +
-          "Q3: \(String(format: "%5.2f", tempStats.q3)) | " +
-          "Max: \(String(format: "%5.2f", tempStats.max))")
-    print("Moist  | " +
-          "Avg: \(String(format: "%5.2f", moistStats.avg)) | " +
-          "Min: \(String(format: "%5.2f", moistStats.min)) | " +
-          "Q1: \(String(format: "%5.2f", moistStats.q1)) | " +
-          "Med: \(String(format: "%5.2f", moistStats.median)) | " +
-          "Q3: \(String(format: "%5.2f", moistStats.q3)) | " +
-          "Max: \(String(format: "%5.2f", moistStats.max))")
+    func printDetailedStats(_ name: String, _ stats: Stats) {
+        print("\n\(name) Distribution:")
+        print("  Average: \(String(format: "%.2f", stats.avg))")
+        print("  Percentiles:")
+        let keys = stats.percentiles.keys.sorted()
+        for key in keys {
+            let label = "\(key)%".padding(toLength: 5, withPad: " ", startingAt: 0)
+            let val = String(format: "%.2f", stats.percentiles[key] ?? 0)
+            print("    \(label): \(val)")
+        }
+    }
+    
+    printDetailedStats("Temperature (寒暖)", tempStats)
+    printDetailedStats("Moisture (湿燥)", moistStats)
     print("--------------------------------------------------\n")
 }
 

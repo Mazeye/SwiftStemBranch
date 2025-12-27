@@ -196,28 +196,28 @@ if !stars.isEmpty {
 
 支持的神煞包括：天乙贵人、太极贵人、文昌贵人、驿马、桃花、禄神、羊刃、空亡等。
 
-#### 7.2 全局神煞 (Global/Chart-wide Stars)
+#### 7.2 全局局面 (Global Situations)
 
-某些神煞是基于全盘结构或特定柱位（如日柱、时柱）判定的，不依附于单一地支。
+某些局面是基于全盘结构或特定柱位（如日柱、时柱）判定的，不依附于单一地支。这也包括了传统神煞中的“全局神煞”。
 
 ```swift
-let globalStars = pillars.allGlobalShenShaNames
+let globalSituations = pillars.allGlobalSituations
 
-if !globalStars.isEmpty {
-    print("全局神煞: \(globalStars.joined(separator: " "))")
-    // 例如: "全局神煞: 三奇贵人 魁罡贵人"
+if !globalSituations.isEmpty {
+    print("全局局面: \(globalSituations.joined(separator: " "))")
+    // 例如: "全局局面: 三奇贵人 魁罡贵人"
 }
 ```
 
 内置支持：三奇贵人、魁罡贵人、金神格、十恶大败、天元一气、地支一气等。
 
-#### 7.3 注册自定义神煞规则
+#### 7.3 注册自定义局面 (Global Situation)
 
-SwiftGanZhi 提供了灵活的注册机制，允许用户根据不同流派定义自己的神煞规则。
+SwiftGanZhi 提供了灵活的注册机制，允许用户根据不同流派定义自己的局面或神煞规则。
 
 ```swift
 // 注册一个“四柱纯阳”的规则
-ShenShaRegistry.register("四柱纯阳") { pillars in
+GlobalSituationRegistry.register("四柱纯阳") { pillars in
     let stems = [pillars.year.stem, pillars.month.stem, pillars.day.stem, pillars.hour.stem]
     let branches = [pillars.year.branch, pillars.month.branch, pillars.day.branch, pillars.hour.branch]
     
@@ -225,7 +225,7 @@ ShenShaRegistry.register("四柱纯阳") { pillars in
            branches.allSatisfy { $0.yinYang == .yang }
 }
 
-// 之后调用 .allGlobalShenShaNames 时会自动包含该规则的检查结果
+// 之后调用 .allGlobalSituations 时会自动包含该规则的检查结果
 ```
 
 ### 8. 多语言支持 (i18n)

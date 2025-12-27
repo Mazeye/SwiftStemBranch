@@ -192,28 +192,28 @@ if !stars.isEmpty {
 }
 ```
 
-#### 8.2 全局神煞 (Global Stars)
+#### 8.2 全局局面 (Global Situations)
 
-命式全体の構造や特定の柱（三奇貴人、魁罡など）に基づく神煞を分析します。
+命式全体の構造や特定の柱に基づく局面（三奇貴人、魁罡など）を分析します。これには伝統的な「全局神煞」も含まれます。
 
 ```swift
-let globalStars = pillars.allGlobalShenShaNames
+let globalSituations = pillars.allGlobalSituations
 
-if !globalStars.isEmpty {
-    print("全局神煞: \(globalStars.joined(separator: " "))")
-    // 例: "全局神煞: 三奇貴人 魁罡"
+if !globalSituations.isEmpty {
+    print("全局局面: \(globalSituations.joined(separator: " "))")
+    // 例: "全局局面: 三奇貴人 魁罡"
 }
 ```
 
 内蔵サポート：三奇貴人、魁罡、金神、十惡大敗、天元一氣など。
 
-#### 8.3 カスタムルールの登録
+#### 8.3 カスタム局面の登録
 
-SwiftGanZhi は柔軟な登録メカニズムを提供しており、流派に応じて独自の神煞ルールを定義できます。
+SwiftGanZhi は柔軟な登録メカニズムを提供しており、流派に応じて独自の局面や神煞ルールを定義できます。
 
 ```swift
 // 「四柱純陽」ルールを登録
-ShenShaRegistry.register("四柱純陽") { pillars in
+GlobalSituationRegistry.register("四柱純陽") { pillars in
     let stems = [pillars.year.stem, pillars.month.stem, pillars.day.stem, pillars.hour.stem]
     let branches = [pillars.year.branch, pillars.month.branch, pillars.day.branch, pillars.hour.branch]
     
@@ -221,7 +221,7 @@ ShenShaRegistry.register("四柱純陽") { pillars in
            branches.allSatisfy { $0.yinYang == .yang }
 }
 
-// .allGlobalShenShaNames を呼び出す際に自動的にチェックされます
+// .allGlobalSituations を呼び出す際に自動的にチェックされます
 ```
 
 ### 9. 多国語対応 (i18n)

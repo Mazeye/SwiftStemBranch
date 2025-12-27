@@ -121,8 +121,9 @@ public enum ShenSha: String, CaseIterable, CustomStringConvertible {
     }
 }
 
-/// Represents Global Shen Sha (Chart-wide Stars/Features).
-public enum GlobalShenSha: String, CaseIterable, CustomStringConvertible {
+/// Represents Global Situations (Chart-wide Patterns/Features).
+/// Previously "Global Shen Sha".
+public enum GlobalSituation: String, CaseIterable, CustomStringConvertible {
     case sanQi = "三奇贵人"      // San Qi (Three Wonders)
     case kuiGang = "魁罡贵人"    // Kui Gang (Authoritarian)
     case jinShen = "金神格"      // Jin Shen (Golden Spirit Pattern)
@@ -176,9 +177,9 @@ public enum GlobalShenSha: String, CaseIterable, CustomStringConvertible {
 
 public extension FourPillars {
     
-    /// Calculates Global Shen Sha (Chart-wide features).
-    var globalShenSha: [GlobalShenSha] {
-        var stars: [GlobalShenSha] = []
+    /// Calculates Built-in Global Situations.
+    var builtInGlobalSituations: [GlobalSituation] {
+        var situations: [GlobalSituation] = []
         
         let yS = year.stem.value
         let mS = month.stem.value
@@ -196,7 +197,7 @@ public extension FourPillars {
         // Earth: Yi Bing Ding
         // Man: Ren Gui Xin
         if checkSanQi(s1: yS, s2: mS, s3: dS) || checkSanQi(s1: mS, s2: dS, s3: hS) {
-            stars.append(.sanQi)
+            situations.append(.sanQi)
         }
         
         // 2. Kui Gang (Day Pillar)
@@ -205,7 +206,7 @@ public extension FourPillars {
            (dS == .geng && dB == .xu) ||
            (dS == .geng && dB == .chen) ||
            (dS == .wu && dB == .xu) {
-            stars.append(.kuiGang)
+            situations.append(.kuiGang)
         }
         
         // 3. Jin Shen (Hour Pillar + Day Stem)
@@ -215,7 +216,7 @@ public extension FourPillars {
             if (hS == .yi && hB == .chou) ||
                (hS == .ji && hB == .si) ||
                (hS == .gui && hB == .you) {
-                stars.append(.jinShen)
+                situations.append(.jinShen)
             }
         }
         
@@ -235,41 +236,42 @@ public extension FourPillars {
             // Actually Shi E Da Bai means "Day Lu is in Empty Branch (Kong Wang) relative to Year Stem".
             let luBranch = Branch.allCases.first(where: { dS.lifeStage(in: $0) == .linGuan })
             if let lu = luBranch, checkKongWang(stem: year.stem.value, branch: year.branch.value, target: lu) {
-                stars.append(.shiEDaBai)
+                situations.append(.shiEDaBai)
             }
         }
         
         // 5. Heavenly Unity (Tian Yuan Yi Qi)
         if yS == mS && mS == dS && dS == hS {
-            stars.append(.tianYuanYiQi)
+            situations.append(.tianYuanYiQi)
         }
         
         // 6. Earthly Unity (Di Zhi Yi Qi)
         if yB == mB && mB == dB && dB == hB {
-            stars.append(.diZhiYiQi)
+            situations.append(.diZhiYiQi)
         }
         
         // 7. Sequential Stems (Lian Ru)
         // Check if stems are sequential (e.g. Jia Yi Bing Ding)
         if isSequential([yS, mS, dS, hS]) {
-            stars.append(.tianGanLianRu)
+            situations.append(.tianGanLianRu)
         }
         
         // 8. Sequential Branches (Lian Ru)
         if isSequentialBranches([yB, mB, dB, hB]) {
-            stars.append(.diZhiLianRu)
+            situations.append(.diZhiLianRu)
         }
         
-        return stars
+        return situations
     }
     
-    /// Calculates all Global Shen Sha names, including built-in and user-registered ones.
-    var allGlobalShenShaNames: [String] {
+    /// Calculates all Global Situations (Chart-wide Patterns/Features).
+    /// Includes both built-in (e.g. San Qi) and user-registered custom situations.
+    var allGlobalSituations: [String] {
         // 1. Get Built-in names
-        var names = self.globalShenSha.map { $0.name }
+        var names = self.builtInGlobalSituations.map { $0.name }
         
         // 2. Get Custom Registered names
-        let customRules = ShenShaRegistry.getAllRules()
+        let customRules = GlobalSituationRegistry.getAllRules()
         for rule in customRules {
             if rule.check(self) {
                 names.append(rule.name)

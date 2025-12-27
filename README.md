@@ -191,28 +191,28 @@ if !stars.isEmpty {
 }
 ```
 
-#### 8.2 Global Stars (Chart-wide Features)
+#### 8.2 Global Situations (Chart-wide Patterns)
 
 Analyze patterns that apply to the entire chart or specific pillar combinations (e.g., San Qi, Kui Gang).
 
 ```swift
-let globalStars = pillars.allGlobalShenShaNames
+let globalSituations = pillars.allGlobalSituations
 
-if !globalStars.isEmpty {
-    print("Global Stars: \(globalStars.joined(separator: " "))")
-    // e.g., "Global Stars: Three Wonders Kui Gang Nobleman"
+if !globalSituations.isEmpty {
+    print("Global Situations: \(globalSituations.joined(separator: " "))")
+    // e.g., "Global Situations: Three Wonders Kui Gang Nobleman"
 }
 ```
 
 Built-in support: Three Wonders (San Qi), Kui Gang, Golden Spirit, Ten Evils Big Failure, Heavenly Unity, etc.
 
-#### 8.3 Register Custom Rules
+#### 8.3 Register Custom Situation
 
 SwiftGanZhi allows you to define custom rules to support different schools of thought.
 
 ```swift
 // Register a "Pure Yang" rule
-ShenShaRegistry.register("Pure Yang") { pillars in
+GlobalSituationRegistry.register("Pure Yang") { pillars in
     let stems = [pillars.year.stem, pillars.month.stem, pillars.day.stem, pillars.hour.stem]
     let branches = [pillars.year.branch, pillars.month.branch, pillars.day.branch, pillars.hour.branch]
     
@@ -220,7 +220,7 @@ ShenShaRegistry.register("Pure Yang") { pillars in
            branches.allSatisfy { $0.yinYang == .yang }
 }
 
-// The rule will be automatically checked when calling .allGlobalShenShaNames
+// The rule will be automatically checked when calling .allGlobalSituations
 ```
 
 ### 9. Internationalization (i18n)
