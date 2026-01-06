@@ -262,6 +262,36 @@ if tb.isFrozen {
 }
 ```
 
+### 11. 用神・忌神分析
+
+五行エネルギーのバランスと格局に基づいて、「用神（喜神）」と「忌神」を自動判定します。
+
+```swift
+let analysis = pillars.usefulGodAnalysis
+
+// 1. 用神・喜神を取得 (Ten Gods)
+// TenGodsの配列を返します。例: [.directResource, .indirectResource]
+let usefulGods = analysis.yongShen
+print("用神: \(usefulGods.map { $0.name })") 
+
+// 2. 忌神を取得 (Ten Gods)
+let jiGods = analysis.jiShen
+print("忌神: \(jiGods.map { $0.name })")
+
+// 3. 喜用五行を取得 (Five Elements)
+// FiveElementsの配列を返します。例: [.water, .metal]
+let favElements = analysis.favorableElements
+print("喜用五行: \(favElements.map { $0.name })")
+
+// 4. 忌神五行を取得
+let unfavElements = analysis.unfavorableElements
+print("忌神五行: \(unfavElements.map { $0.name })")
+
+// 5. 完全な分析の詳細を取得 (String)
+// エネルギー計算、格局判定、選定理由を含みます
+print(analysis.description)
+```
+
 ## 📄 ライセンス
 
 本プロジェクトは MIT ライセンスの下で公開されています。詳細は [LICENSE](LICENSE) ファイルをご覧ください。

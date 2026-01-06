@@ -261,6 +261,36 @@ if tb.isFrozen {
 }
 ```
 
+### 11. Useful God Analysis (Yong Shen)
+
+Determine the "Useful God" (Yong Shen) and "Ji God" (Negative God) based on five element energy balance and chart patterns.
+
+```swift
+let analysis = pillars.usefulGodAnalysis
+
+// 1. Get Useful Gods (Ten Gods)
+// Returns an array of TenGods, e.g., [.directResource, .indirectResource]
+let usefulGods = analysis.yongShen
+print("Useful Gods: \(usefulGods.map { $0.name })") 
+
+// 2. Get Ji Gods (Negative Gods)
+let jiGods = analysis.jiShen
+print("Ji Gods: \(jiGods.map { $0.name })")
+
+// 3. Get Favorable Elements (Five Elements)
+// Returns an array of FiveElements, e.g., [.water, .metal]
+let favElements = analysis.favorableElements
+print("Favorable Elements: \(favElements.map { $0.name })")
+
+// 4. Get Unfavorable Elements
+let unfavElements = analysis.unfavorableElements
+print("Unfavorable Elements: \(unfavElements.map { $0.name })")
+
+// 5. Get Full Analysis Description (String)
+// Includes energy calculation, pattern logic, and reasoning
+print(analysis.description)
+```
+
 ## 📄 License
 
 MIT License. See [LICENSE](LICENSE) for details.

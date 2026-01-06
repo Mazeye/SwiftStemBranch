@@ -267,6 +267,36 @@ if tb.isFrozen {
 }
 ```
 
+### 10. 用神与忌神分析
+
+基于五行能量平衡与格局法，自动判定建议的“喜用神”与“忌神”。
+
+```swift
+let analysis = pillars.usefulGodAnalysis
+
+// 1. 获取建议用神 (Ten Gods)
+// 返回一个 TenGods 数组，例如 [.directResource, .indirectResource]
+let usefulGods = analysis.yongShen
+print("建议用神: \(usefulGods.map { $0.name })") 
+
+// 2. 获取忌神 (Ten Gods)
+let jiGods = analysis.jiShen
+print("忌神: \(jiGods.map { $0.name })")
+
+// 3. 获取喜用五行 (Five Elements)
+// 返回一个 FiveElements 数组，例如 [.water, .metal]
+let favElements = analysis.favorableElements
+print("喜用五行: \(favElements.map { $0.name })")
+
+// 4. 获取忌神五行 (Five Elements)
+let unfavElements = analysis.unfavorableElements
+print("忌神五行: \(unfavElements.map { $0.name })")
+
+// 5. 获取完整排盘分析描述 (String)
+// 包含能量计算、格局判定及取用理由
+print(analysis.description)
+```
+
 ## 📄 许可证
 
 本项目基于 MIT 许可证开源。详见 [LICENSE](LICENSE) ファイル。

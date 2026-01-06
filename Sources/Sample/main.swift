@@ -51,6 +51,11 @@ func parseDate(_ args: [String]) -> (Date, Gender) {
     return (date, gender)
 }
 
+if args.contains("--test-yong-shen") {
+    runUsefulGodTest()
+    exit(0)
+}
+
 let (date, gender) = parseDate(args)
 let pillars = date.fourPillars()
 
@@ -274,6 +279,22 @@ for item in sortedRanking {
         print("\(item.name): \(scoreStr)")
     }
 }
+print("--------------------------------------------------")
+
+// Useful God Analysis
+let godAnalysis = pillars.usefulGodAnalysis
+let usefulGodTitle = (GanZhiConfig.language == .english) ? "Useful God Analysis:" : "用神分析:"
+print(usefulGodTitle)
+print(godAnalysis.description)
+let yongShenLabel = (GanZhiConfig.language == .english) ? "Yong Shen (Useful):" : "建议用神:"
+let jiShenLabel = (GanZhiConfig.language == .english) ? "Ji Shen (Avoid):" : "建议忌神:"
+let favLabel = (GanZhiConfig.language == .english) ? "Fav Elements:" : "喜用五行:"
+let unfavLabel = (GanZhiConfig.language == .english) ? "Unfav Elements:" : "忌讳五行:"
+
+print("\(yongShenLabel) \(godAnalysis.yongShen.map { $0.name }.joined(separator: ", "))")
+print("\(jiShenLabel) \(godAnalysis.jiShen.map { $0.name }.joined(separator: ", "))")
+print("\(favLabel) \(godAnalysis.favorableElements.map { $0.description }.joined(separator: ", "))")
+print("\(unfavLabel) \(godAnalysis.unfavorableElements.map { $0.description }.joined(separator: ", "))")
 print("--------------------------------------------------")
 
 print(L("yinYang"))
