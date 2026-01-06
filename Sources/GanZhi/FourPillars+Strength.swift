@@ -20,11 +20,10 @@ extension FourPillars {
             let branch = pillar.branch
             
             // 1. Stem contribution
-            // Note: Day Master itself is typically excluded from "Ten Gods" in some contexts, 
-            // but for "pattern" comparison, we might need its strength if it's Bi Jian.
-            // In determinePattern, we compare with Bi Jian/Rob Wealth.
+            // Note: Day Master itself is typically excluded from "Ten Gods" (it is the reference "Me").
+            // So we do NOT add its energy to .friend or any other Ten God.
             if type == .day {
-                scores[.friend, default: 0] += stem.energy
+                // Do nothing for Ten God score
             } else {
                 let sTenGod = self.tenGod(for: stem)
                 scores[sTenGod, default: 0] += stem.energy
@@ -92,6 +91,51 @@ extension FourPillars {
             }
         }
         
+        // 3.1 Half San Hui (Half Directional) - Ten Gods
+        var fullSanHuiElementsTG: Set<FiveElements> = []
+        for rel in self.relationships where rel.type == .branchDirectional {
+             switch rel.characters {
+             case "寅卯辰": fullSanHuiElementsTG.insert(.wood)
+             case "巳午未": fullSanHuiElementsTG.insert(.fire)
+             case "申酉戌": fullSanHuiElementsTG.insert(.metal)
+             case "亥子丑": fullSanHuiElementsTG.insert(.water)
+             default: continue
+             }
+        }
+        
+        let directions: [FiveElements: Set<String>] = [
+            .wood: ["寅", "卯", "辰"],
+            .fire: ["巳", "午", "未"],
+            .metal: ["申", "酉", "戌"],
+            .water: ["亥", "子", "丑"]
+        ]
+        
+        for (element, chars) in directions {
+            if fullSanHuiElementsTG.contains(element) { continue }
+            
+            var involvedIndices: [Int] = []
+            for (index, pillar) in pillars.enumerated() {
+                if chars.contains(pillar.branch.value.character) {
+                    involvedIndices.append(index)
+                }
+            }
+            
+            if involvedIndices.count >= 2 {
+                 // Calculate Ten Gods for this element
+                 let tgYang = TenGods.calculate(dayMaster: self.day.stem.value, targetElement: element, targetYinYang: .yang)
+                 let tgYin = TenGods.calculate(dayMaster: self.day.stem.value, targetElement: element, targetYinYang: .yin)
+                
+                for index in involvedIndices {
+                    let branchEnergy: Double = (index == 1) ? 3.0 : 1.0
+                    let bonus = branchEnergy * 0.5
+                    
+                    // Distribute half bonus for Ten Gods
+                    scores[tgYang, default: 0] += bonus * 0.5
+                    scores[tgYin, default: 0] += bonus * 0.5
+                }
+            }
+        }
+        
         return scores
     }
     
@@ -147,6 +191,45 @@ extension FourPillars {
             if sortedIndices.count == 3 {
                 if sortedIndices[1] == sortedIndices[0] + 1 && sortedIndices[2] == sortedIndices[1] + 1 {
                     scores[element, default: 0] += 1.0
+                }
+            }
+        }
+        
+        // 3.1 Half San Hui (Half Directional)
+        var fullSanHuiElements: Set<FiveElements> = []
+        for rel in self.relationships where rel.type == .branchDirectional {
+             switch rel.characters {
+             case "寅卯辰": fullSanHuiElements.insert(.wood)
+             case "巳午未": fullSanHuiElements.insert(.fire)
+             case "申酉戌": fullSanHuiElements.insert(.metal)
+             case "亥子丑": fullSanHuiElements.insert(.water)
+             default: continue
+             }
+        }
+        
+        let directions: [FiveElements: Set<String>] = [
+            .wood: ["寅", "卯", "辰"],
+            .fire: ["巳", "午", "未"],
+            .metal: ["申", "酉", "戌"],
+            .water: ["亥", "子", "丑"]
+        ]
+        
+        for (element, chars) in directions {
+            if fullSanHuiElements.contains(element) { continue }
+            
+            var involvedIndices: [Int] = []
+            for (index, pillar) in pillars.enumerated() {
+                if chars.contains(pillar.branch.value.character) {
+                    involvedIndices.append(index)
+                }
+            }
+            
+            if involvedIndices.count >= 2 {
+                for index in involvedIndices {
+                    // Month (index 1) gets 3.0, others 1.0
+                    let branchEnergy: Double = (index == 1) ? 3.0 : 1.0
+                    // Half energy bonus
+                    scores[element, default: 0] += branchEnergy * 0.5
                 }
             }
         }

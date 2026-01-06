@@ -213,7 +213,25 @@ public struct UsefulGodCalculator {
                  favElements.insert(usefulElm)
                  unfavElements.insert(jiElm)
             }
-            // 3. Three Evil Gods (Xiao, Sha, Shang)
+            // 3. Wealth Pattern (Direct/Indirect Wealth)
+            else if pTenGod == .directWealth || pTenGod == .indirectWealth {
+                reasons.append("Type: Wealth Pattern (Zheng Cai/Pian Cai)")
+                
+                // Useful: Output (produces Wealth) + Resource (strengthens Self)
+                // Ji: Peer (rob Wealth)
+                
+                let usefulOutput = getChild(dmElement)
+                let usefulResource = getParent(dmElement)
+                let jiPeer = dmElement
+                
+                reasons.append("Useful God: Output (Generate Wealth) [\(usefulOutput.description)] + Resource (Strengthen Self) [\(usefulResource.description)]")
+                reasons.append("Ji God: Peer (Rob Wealth) [\(jiPeer.description)]")
+                
+                favElements.insert(usefulOutput)
+                favElements.insert(usefulResource)
+                unfavElements.insert(jiPeer)
+            }
+            // 4. Three Evil Gods (Xiao, Sha, Shang)
             // Indirect Resource, Seven Killings, Hurting Officer
             else if [.indirectResource, .sevenKillings, .hurtingOfficer].contains(pTenGod) {
                 reasons.append("Type: Evil God (Xiao/Sha/Shang)")

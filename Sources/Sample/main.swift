@@ -225,6 +225,8 @@ for (index, pillar) in currentPillars.enumerated() {
 }
 
 // 3. San Hui (Directional Harmony) bonus
+var fullSanHuiElements: Set<FiveElements> = []
+
 for rel in pillars.relationships where rel.type == .branchDirectional {
     let element: FiveElements
     switch rel.characters {
@@ -235,6 +237,8 @@ for rel in pillars.relationships where rel.type == .branchDirectional {
     default: continue
     }
     
+    fullSanHuiElements.insert(element)
+    
     for pType in rel.pillars {
         let branchEnergy: Double = (pType == .month) ? 3.0 : 1.0
         elementScores[element, default: 0] += branchEnergy
@@ -244,6 +248,38 @@ for rel in pillars.relationships where rel.type == .branchDirectional {
     if sortedIndices.count == 3 {
         if sortedIndices[1] == sortedIndices[0] + 1 && sortedIndices[2] == sortedIndices[1] + 1 {
             elementScores[element, default: 0] += 1.0
+        }
+    }
+}
+
+// 3.1 Half San Hui (Half Directional)
+// Logic: If not Full San Hui, but has >= 2 branches of the direction, add half bonus.
+let directions: [FiveElements: Set<String>] = [
+    .wood: ["寅", "卯", "辰"],
+    .fire: ["巳", "午", "未"],
+    .metal: ["申", "酉", "戌"],
+    .water: ["亥", "子", "丑"]
+]
+
+for (element, chars) in directions {
+    if fullSanHuiElements.contains(element) { continue }
+    
+    var involvedIndices: [Int] = []
+    
+    // Check all pillars
+    for (index, pillar) in currentPillars.enumerated() {
+        if chars.contains(pillar.branch.value.character) {
+            involvedIndices.append(index)
+        }
+    }
+    
+    // If 2 or more branches present (and not full San Hui), counts as Half San Hui
+    if involvedIndices.count >= 2 {
+        for index in involvedIndices {
+            // Month (index 1) gets 3.0, others 1.0
+            let branchEnergy: Double = (index == 1) ? 3.0 : 1.0
+            // Half energy bonus
+            elementScores[element, default: 0] += branchEnergy * 0.5
         }
     }
 }
