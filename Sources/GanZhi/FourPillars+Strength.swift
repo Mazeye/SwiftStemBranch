@@ -136,6 +136,36 @@ extension FourPillars {
             }
         }
         
+        // 3.2 San He (Triple Harmony) & Ban San He
+        // Map: Set -> MiddleBranch
+        let tripleSetsTG: [(Set<Branch>, Branch)] = [
+            ([.shen, .zi, .chen], .zi),
+            ([.hai, .mao, .wei], .mao),
+            ([.yin, .wu, .xu], .wu),
+            ([.si, .you, .chou], .you)
+        ]
+
+        let chartBranchesTG = pillars.map { $0.branch.value }
+        let uniqueBranchesTG = Set(chartBranchesTG)
+
+        for (set, middle) in tripleSetsTG {
+            let intersection = set.intersection(uniqueBranchesTG)
+            
+            var bonus: Double = 0.0
+            if intersection.count == 3 {
+                bonus = 2.0
+            } else if intersection.count == 2 {
+                bonus = 1.0
+            }
+            
+            if bonus > 0 {
+                // Add to Ten God of the Middle Branch
+                // Use Ben Qi of Middle Branch
+                let tg = self.tenGod(for: middle)
+                scores[tg, default: 0] += bonus
+            }
+        }
+        
         return scores
     }
     
@@ -231,6 +261,29 @@ extension FourPillars {
                     // Half energy bonus
                     scores[element, default: 0] += branchEnergy * 0.5
                 }
+            }
+        }
+        
+        // 3.2 San He (Triple Harmony) & Ban San He
+        let tripleSets: [(Set<Branch>, FiveElements)] = [
+            ([.shen, .zi, .chen], .water),
+            ([.hai, .mao, .wei], .wood),
+            ([.yin, .wu, .xu], .fire),
+            ([.si, .you, .chou], .metal)
+        ]
+
+        let chartBranchesStr = pillars.map { $0.branch.value }
+        let uniqueBranches = Set(chartBranchesStr)
+
+        for (set, element) in tripleSets {
+            let intersection = set.intersection(uniqueBranches)
+            
+            if intersection.count == 3 {
+                // Full San He: +2.0
+                scores[element, default: 0] += 2.0
+            } else if intersection.count == 2 {
+                // Half San He: +1.0
+                scores[element, default: 0] += 1.0
             }
         }
         
