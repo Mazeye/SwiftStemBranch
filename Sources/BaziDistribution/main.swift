@@ -1,7 +1,7 @@
 import Foundation
 import GanZhi
 
-func runExperiment(runThermal: Bool, runPattern: Bool) {
+func runExperiment(runThermal: Bool, runPattern: Bool, runElements: Bool) {
     let sampleSize = 100_000
     var temperatures: [Double] = []
     var moistures: [Double] = []
@@ -17,12 +17,18 @@ func runExperiment(runThermal: Bool, runPattern: Bool) {
     }
     
     var patternCounts: [String: Int] = [:]
-    var elementCollects: [FiveElements: [Double]] = [
-        .wood: [], .fire: [], .earth: [], .metal: [], .water: []
-    ]
+    
+    // Matrix: [DM Element : [Target Element : [Values]]]
+    var elementStatsByDM: [FiveElements: [FiveElements: [Double]]] = [:]
+    for dm in FiveElements.allCases {
+        elementStatsByDM[dm] = [:]
+        for target in FiveElements.allCases {
+            elementStatsByDM[dm]?[target] = []
+        }
+    }
     
     print("Generating \(sampleSize) random BaZi charts...")
-    print("Modes: Thermal=\(runThermal), Pattern/Element=\(runPattern)")
+    print("Modes: Thermal=\(runThermal), Pattern=\(runPattern), Elements=\(runElements)")
     
     let startYear = 1900
     let endYear = 2100
@@ -34,10 +40,9 @@ func runExperiment(runThermal: Bool, runPattern: Bool) {
         let randomDate = startDate.addingTimeInterval(randomSeconds)
         let pillars = randomDate.fourPillars()
         
-        let dayMaster = pillars.day.stem.value
-        
         // 1. Thermal Balance
         if runThermal {
+            let dayMaster = pillars.day.stem.value
             let tb = pillars.thermalBalance
             temperatures.append(tb.temperature)
             moistures.append(tb.moisture)
@@ -46,14 +51,19 @@ func runExperiment(runThermal: Bool, runPattern: Bool) {
             moisturesByStem[dayMaster]?.append(tb.moisture)
         }
         
-        // 2 & 3. Pattern & Five Element Strengths
+        // 2. Pattern
         if runPattern {
             let pattern = pillars.determinePattern()
             patternCounts[pattern.description, default: 0] += 1
-            
+        }
+        
+        // 3. Five Element Analysis (Grouped by DM)
+        if runElements {
+            let dmElement = pillars.day.stem.value.fiveElement
             let strengths = pillars.elementStrengths
+            
             for (element, strength) in strengths {
-                elementCollects[element]?.append(strength)
+                elementStatsByDM[dmElement]?[element]?.append(strength)
             }
         }
         
@@ -99,17 +109,34 @@ func runExperiment(runThermal: Bool, runPattern: Bool) {
             let paddedPattern = pattern.padding(toLength: 20, withPad: " ", startingAt: 0)
             print("\(paddedPattern): \(count) (\(String(format: "%.2f", prob))%)")
         }
+    }
+    
+    if runElements {
+        print("\n[Five Element Distribution by Day Master]")
+        print("Format: [Target Element] Avg (Med) | ...")
         
-        print("\n[Five Element Strength Distribution]")
-        for element in FiveElements.allCases {
-            if let data = elementCollects[element] {
-                let stats = calculateStats(data)
-                let p0 = String(format: "%5.2f", stats.percentiles[0] ?? 0)
-                let p50 = String(format: "%5.2f", stats.percentiles[50] ?? 0)
-                let p100 = String(format: "%5.2f", stats.percentiles[100] ?? 0)
-                let avg = String(format: "%5.2f", stats.avg)
-                
-                print("\(element.name.padding(toLength: 4, withPad: " ", startingAt: 0)) | Avg: \(avg) | Min: \(p0) | Med: \(p50) | Max: \(p100)")
+        for dm in FiveElements.allCases {
+            print("\n=== Day Master: \(dm.name) (日主: \(dm.name)) ===")
+            print("Target |   Avg |   Min |   10% |   25% |   50% |   75% |   90% |   Max")
+            print("-------|-------|-------|-------|-------|-------|-------|-------|------")
+            
+            for target in FiveElements.allCases {
+                if let data = elementStatsByDM[dm]?[target] {
+                    let s = calculateStats(data)
+                    let avg = String(format: "%5.1f", s.avg)
+                    let min = String(format: "%5.1f", s.percentiles[0] ?? 0)
+                    let p10 = String(format: "%5.1f", s.percentiles[10] ?? 0)
+                    let p25 = String(format: "%5.1f", s.percentiles[25] ?? 0)
+                    let p50 = String(format: "%5.1f", s.percentiles[50] ?? 0)
+                    let p75 = String(format: "%5.1f", s.percentiles[75] ?? 0)
+                    let p90 = String(format: "%5.1f", s.percentiles[90] ?? 0)
+                    let max = String(format: "%5.1f", s.percentiles[100] ?? 0)
+                    
+                    // Highlight Self Element
+                    let marker = (target == dm) ? "*" : " "
+                    
+                    print("\(marker) \(target.name)  | \(avg) | \(min) | \(p10) | \(p25) | \(p50) | \(p75) | \(p90) | \(max)")
+                }
             }
         }
     }
@@ -130,38 +157,8 @@ func runExperiment(runThermal: Bool, runPattern: Bool) {
             }
         }
         
-        printDetailedStats("Temperature (寒暖)", tempStats)
-        printDetailedStats("Moisture (湿燥)", moistStats)
-        
-        // Print Grouped By Stem Stats
-        print("\n[Thermal Stats by Day Master]")
-        
-        // Helper to print a compact row
-        func printRowStats(label: String, stats: Stats) {
-            let p10 = String(format: "%.1f", stats.percentiles[10] ?? 0)
-            let p25 = String(format: "%.1f", stats.percentiles[25] ?? 0)
-            let p50 = String(format: "%.1f", stats.percentiles[50] ?? 0) // Median
-            let p75 = String(format: "%.1f", stats.percentiles[75] ?? 0)
-            let p90 = String(format: "%.1f", stats.percentiles[90] ?? 0)
-            let avg = String(format: "%.1f", stats.avg)
-            print("\(label) | Avg: \(avg) | 10%: \(p10) | 25%: \(p25) | 50%: \(p50) | 75%: \(p75) | 90%: \(p90)")
-        }
-        
-        print("\nTemperature (寒暖) by Day Master:")
-        for stem in Stem.allCases {
-             if let data = temperaturesByStem[stem], !data.isEmpty {
-                 let s = calculateStats(data)
-                 printRowStats(label: stem.character.padding(toLength: 4, withPad: " ", startingAt: 0), stats: s)
-             }
-        }
-        
-        print("\nMoisture (湿燥) by Day Master:")
-        for stem in Stem.allCases {
-             if let data = moisturesByStem[stem], !data.isEmpty {
-                 let s = calculateStats(data)
-                 printRowStats(label: stem.character.padding(toLength: 4, withPad: " ", startingAt: 0), stats: s)
-             }
-        }
+        printDetailedStats("Global Temperature", tempStats)
+        printDetailedStats("Global Moisture", moistStats)
     }
     print("--------------------------------------------------\n")
 }
@@ -169,10 +166,11 @@ func runExperiment(runThermal: Bool, runPattern: Bool) {
 let args = CommandLine.arguments
 let runThermal = args.contains("--thermal") || args.contains("-t")
 let runPattern = args.contains("--pattern") || args.contains("-p")
+let runElements = args.contains("--elements") || args.contains("-e")
 
 // Default to ALL if no flags specified
-if !runThermal && !runPattern {
-    runExperiment(runThermal: true, runPattern: true)
+if !runThermal && !runPattern && !runElements {
+    runExperiment(runThermal: true, runPattern: true, runElements: true)
 } else {
-    runExperiment(runThermal: runThermal, runPattern: runPattern)
+    runExperiment(runThermal: runThermal, runPattern: runPattern, runElements: runElements)
 }

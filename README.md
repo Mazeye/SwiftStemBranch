@@ -15,7 +15,8 @@ It features **astronomical-grade accuracy** for solar terms calculation (based o
 * **High Precision**: Uses simplified VSOP87/Meeus algorithms to calculate Apparent Solar Longitude for precise solar term determination.
 * **True Solar Time**: Automatically corrects time based on longitude and Equation of Time (EoT).
 * **Scientific Day Calculation**: Uses Julian Day algorithms to eliminate timezone and leap year drifts.
-* **Energy Coefficients**: Calculates the dynamic strength of Stems and Branches based on rooting, distance, and seasonal effects. Advanced scoring includes weighted hidden stems and directional harmony (San Hui) bonuses.
+* **Dynamic Energy System**: Precise strength calculation for Five Elements and Ten Gods using seasonal coefficients (1.4/1.2/1.0/0.8/0.6), rooting strength (supports heterogeneous roots at 50%), distance decay, and branch interaction (San He/San Hui) bonuses.
+* **Mixed Rooting Logic**: Accurate energy support matching both strict characters and same-element different-polarity stems (e.g., Bing Fire sitting on Ding Fire gets 50% support), keeping energy levels realistic while maintaining strict pattern analysis.
 * **Relationship Detection**: Automatically detects combinations, clashes, harms, punishments, and destructions (刑冲会合).
 
 ## 📦 Installation
@@ -131,7 +132,7 @@ if let yu = hidden.yuQi {
 
 ### 6. GeJu (Pattern) Determination
 
-Automatically determine the chart pattern based on traditional rules (Month Qi priority, Stem penetration, etc.).
+Automatically determine the chart pattern based on traditional rules (Month Qi priority, Stem penetration, etc.). For auxiliary pattern detection in Peer-type charts (Jian Lu, Yang Ren), the auxiliary must dominate the entire "Self Group" (combined energy of Day Master, Friend, and Rob Wealth) for increased rigor.
 
 ```swift
 let pattern = pillars.determinePattern()

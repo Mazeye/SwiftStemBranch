@@ -169,10 +169,25 @@ extension FourPillars {
         let strengths = self.tenGodStrengths
         let primaryStrength = strengths[primary.tenGod, default: 0]
         
+        let thresholdStrength: Double
+        if primary.tenGod == .friend || primary.tenGod == .robWealth {
+            // For Peer patterns (JianLu/YangRen), the "dominant" force is the entire Peer group (Self + Friend + RobWealth).
+            // An auxiliary must be stronger than the entire Body to be considered valid (e.g., extremely strong Wealth).
+            // Note: tenGodStrengths excludes Day Master energy, so we add it manually.
+            let selfEnergy = self.day.stem.energy
+            let friendScore = strengths[.friend, default: 0]
+            let robScore = strengths[.robWealth, default: 0]
+            thresholdStrength = friendScore + robScore + selfEnergy
+        } else {
+            // For other patterns (e.g. Wealth), just compare against the primary Ten God strength.
+            thresholdStrength = strengths[primary.tenGod, default: 0]
+        }
+        
         // Find strongest non-peer (not Friend or Rob Wealth)
         let nonPeers = strengths.filter { $0.key != .friend && $0.key != .robWealth }
         if let strongest = nonPeers.max(by: { $0.value < $1.value }) {
-            if strongest.value > primaryStrength && strongest.key != primary.tenGod {
+            // Must be strictly stronger than the threshold
+            if strongest.value > thresholdStrength && strongest.key != primary.tenGod {
                 return Pattern(tenGod: primary.tenGod, method: primary.method, customName: primary.customName, auxiliaryTenGod: strongest.key, auxiliaryMethod: .dominantStrength)
             }
         }

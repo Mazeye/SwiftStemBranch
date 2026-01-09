@@ -411,12 +411,54 @@ public struct FourPillars {
         }
     }
     
+    /// Calculates the seasonal coefficient (Wang Xiang Xiu Qiu Si) for a given element.
+    /// Based on the Month Branch (Commander).
+    private func getSeasonalCoefficient(for element: FiveElements) -> Double {
+        let monthElement = _month.branch.fiveElement
+        
+        // 1. Wang (Same as Month): 1.4
+        if element == monthElement {
+            return 1.4
+        }
+        
+        // 2. Xiang (Month Produces Element): 1.2
+        if monthElement.generates(element) {
+            return 1.2
+        }
+        
+        // 3. Xiu (Element Produces Month): 1.0
+        if element.generates(monthElement) {
+            return 1.0
+        }
+        
+        // 4. Qiu (Element Controls Month): 0.8
+        if element.controls(monthElement) {
+            return 0.8
+        }
+        
+        // 5. Si (Month Controls Element): 0.6
+        if monthElement.controls(element) {
+            return 0.6
+        }
+        
+        return 1.0 // Fallback
+    }
+
     /// Calculates the energy coefficient of the Branch at the specified pillar.
     ///
-    /// - Month Branch: 3.0
-    /// - Other Branches: 1.0
+    /// - Month Branch: 3.0 (The Commander, unadjusted)
+    /// - Other Branches: 1.0 * SeasonalCoefficient
     public func branchEnergy(for pillarType: PillarType) -> Double {
-        return (pillarType == .month) ? 3.0 : 1.0
+        if pillarType == .month {
+            return 3.0
+        }
+        
+        let branch = (pillarType == .year) ? _year.branch :
+                     (pillarType == .day) ? _day.branch :
+                     _hour.branch
+                     
+        let coeff = getSeasonalCoefficient(for: branch.fiveElement)
+        return 1.0 * coeff
     }
 
     /// Calculates the energy coefficient of the Stem at the specified pillar.
@@ -449,7 +491,12 @@ public struct FourPillars {
         
         let sourceIndex = pillarType.rawValue
         
-        var totalScore: Double = 1.0
+        // 1. Base Score scaled by Seasonal Coefficient (Wang Xiang Xiu Qiu Si)
+        // User Logic: Only adjust the Base 1.0. Root score inherits branch adjustment.
+        // Formula: (1.0 * SeasonalCoeff) + RootScores
+        
+        let seasonalCoeff = getSeasonalCoefficient(for: targetStem.fiveElement)
+        var totalScore: Double = 1.0 * seasonalCoeff
         
         // Iterate through all branches to find roots
         let branches: [(pillar: PillarType, branch: Branch)] = [
@@ -463,21 +510,52 @@ public struct FourPillars {
             let branchIndex = branchPillar.rawValue
             
             // 1. Branch Base Score (Branch Energy)
+            // This already includes the coefficient for non-month branches
             let branchBaseScore = branchEnergy(for: branchPillar)
+            
+            // Calculate Seasonal Coefficient for Root Adjustment
+            // Month Branch is the standard (1.0 relative to itself for rooting quality)
+            // Other branches get the same coefficient applied to their base energy
+            let seasonalCoeff: Double
+            if branchPillar == .month {
+                seasonalCoeff = 1.0
+            } else {
+                seasonalCoeff = getSeasonalCoefficient(for: branch.fiveElement)
+            }
             
             // 2. Rooting Score
             var rootScore: Double = 0.0
             
             // Allow rooting in multiple hidden stems if elements match (additive)
+            
+            // Ben Qi (Main)
             if branch.benQi == targetStem {
                 rootScore += 3.0
+            } else if branch.benQi.fiveElement == targetStem.fiveElement {
+                rootScore += 1.5
             }
-            if let z = branch.zhongQi, z == targetStem {
-                rootScore += 2.0
+            
+            // Zhong Qi (Middle)
+            if let z = branch.zhongQi {
+                if z == targetStem {
+                    rootScore += 2.0
+                } else if z.fiveElement == targetStem.fiveElement {
+                    rootScore += 1.0
+                }
             }
-            if let y = branch.yuQi, y == targetStem {
-                rootScore += 1.0
+            
+            // Yu Qi (Residual)
+            if let y = branch.yuQi {
+                if y == targetStem {
+                    rootScore += 1.0
+                } else if y.fiveElement == targetStem.fiveElement {
+                    rootScore += 0.5
+                }
             }
+            
+            // Apply Seasonal Coefficient to Root Score
+            // "Weak Branch = Weak Root"
+            rootScore *= seasonalCoeff
             
             // If no root found in this branch, contribution is 0
             if rootScore == 0 {
