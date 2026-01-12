@@ -266,32 +266,31 @@ if tb.isFrozen {
 
 ### 11. 用神・忌神分析
 
-五行エネルギーのバランスと格局に基づいて、「用神（喜神）」と「忌神」を自動判定します。
+3つの異なる方法で「用神（喜神）」と「忌神（凶神）」を判定できます：
+
+1. **格局法 (Ge Ju Fa)**：月令や透干に基づく伝統的な格局（正官格、偏財格など）を用い、通関や制化の論理を組み合わせて判定します。
+2. **旺衰法 (Wang Shuai)**：日主の強弱（身強/身弱/専旺/従格）に基づき、扶抑（バランスを取る）または順勢（勢いに従う）によって判定します。
+3. **調候法 (Tiao Hou)**：命式の寒暖燥湿（温度や湿度）に基づき、気候を調整する特定の干（丙火で解凍、癸水で滋潤など）を用神とします。
 
 ```swift
-let analysis = pillars.usefulGodAnalysis
+// 1. デフォルト分析 (格局法を使用)
+let analysis = pillars.usefulGodAnalysis 
 
-// 1. 用神・喜神を取得 (Ten Gods)
-// TenGodsの配列を返します。例: [.directResource, .indirectResource]
-let usefulGods = analysis.yongShen
-print("用神: \(usefulGods.map { $0.name })") 
+// 2. 方法を明示的に指定
+let patternResult = pillars.calculateUsefulGod(method: .pattern)   // 格局法
+let strengthResult = pillars.calculateUsefulGod(method: .wangShuai) // 旺衰法
+let climateResult = pillars.calculateUsefulGod(method: .tiaoHou)    // 調候法
 
-// 2. 忌神を取得 (Ten Gods)
-let jiGods = analysis.jiShen
-print("忌神: \(jiGods.map { $0.name })")
+print("--- 格局法 ---")
+print("用神: \(patternResult.yongShen.map { $0.name })")
+print(patternResult.description)
 
-// 3. 喜用五行を取得 (Five Elements)
-// FiveElementsの配列を返します。例: [.water, .metal]
-let favElements = analysis.favorableElements
-print("喜用五行: \(favElements.map { $0.name })")
+print("--- 旺衰法 ---")
+print("用神: \(strengthResult.yongShen.map { $0.name })")
+print(strengthResult.description)
 
-// 4. 忌神五行を取得
-let unfavElements = analysis.unfavorableElements
-print("忌神五行: \(unfavElements.map { $0.name })")
-
-// 5. 完全な分析の詳細を取得 (String)
-// エネルギー計算、格局判定、選定理由を含みます
-print(analysis.description)
+print("--- 調候法 ---")
+print("状態: \(climateResult.description)")
 ```
 
 ## 📄 ライセンス

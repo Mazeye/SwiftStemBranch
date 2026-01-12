@@ -264,32 +264,31 @@ if tb.isFrozen {
 
 ### 11. Useful God Analysis (Yong Shen)
 
-Determine the "Useful God" (Yong Shen) and "Ji God" (Negative God) based on five element energy balance and chart patterns.
+Determine the "Useful God" (Yong Shen) and "Ji God" (Negative God) using three different methods:
+
+1. **Pattern Method (Ge Ju Fa)**: Traditional approach based on chart structure and Ten Gods patterns (e.g., Officer Pattern, Wealth Pattern).
+2. **Wang Shuai Method (Strength)**: Balances the chart based on the strength of the Day Master (Weak/Strong/Follow).
+3. **Tiao Hou Method (Climate)**: Adjusts temperature and moisture (Cold/Warm/Dry/Wet) using specific stems.
 
 ```swift
-let analysis = pillars.usefulGodAnalysis
+// 1. Default Analysis (Pattern Method)
+let analysis = pillars.usefulGodAnalysis 
 
-// 1. Get Useful Gods (Ten Gods)
-// Returns an array of TenGods, e.g., [.directResource, .indirectResource]
-let usefulGods = analysis.yongShen
-print("Useful Gods: \(usefulGods.map { $0.name })") 
+// 2. Specify Method Explicitly
+let patternResult = pillars.calculateUsefulGod(method: .pattern)
+let strengthResult = pillars.calculateUsefulGod(method: .wangShuai)
+let climateResult = pillars.calculateUsefulGod(method: .tiaoHou)
 
-// 2. Get Ji Gods (Negative Gods)
-let jiGods = analysis.jiShen
-print("Ji Gods: \(jiGods.map { $0.name })")
+print("--- Pattern Method ---")
+print("Useful Gods: \(patternResult.yongShen.map { $0.name })")
+print(patternResult.description)
 
-// 3. Get Favorable Elements (Five Elements)
-// Returns an array of FiveElements, e.g., [.water, .metal]
-let favElements = analysis.favorableElements
-print("Favorable Elements: \(favElements.map { $0.name })")
+print("--- Wang Shuai Method ---")
+print("Useful Gods: \(strengthResult.yongShen.map { $0.name })")
+print(strengthResult.description)
 
-// 4. Get Unfavorable Elements
-let unfavElements = analysis.unfavorableElements
-print("Unfavorable Elements: \(unfavElements.map { $0.name })")
-
-// 5. Get Full Analysis Description (String)
-// Includes energy calculation, pattern logic, and reasoning
-print(analysis.description)
+print("--- Climate Method ---")
+print("status: \(climateResult.description)")
 ```
 
 ## 📄 License

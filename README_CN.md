@@ -90,6 +90,7 @@ print("月干能量: \(energy)")
 
 // 如果某些场景（如严格类型匹配或 pattern matching）需要原始枚举，请使用 .value
 let rawStem: Stem = pillars.day.stem.value
+```
 
 ### 4. 干支关系检测 (刑冲会合)
 
@@ -107,7 +108,6 @@ for rel in relationships {
 支持检测：
 - **天干**：五合、相冲。
 - **地支**：六合、三合、三会、六冲、相害、相刑（三刑/自刑/二刑）、相破。
-```
 
 ### 5. 藏干分析（本气、中气、余气）
 
@@ -269,34 +269,33 @@ if tb.isFrozen {
 }
 ```
 
-### 10. 用神与忌神分析
+### 10. 用神与忌神分析 (Useful God)
 
-基于五行能量平衡与格局法，自动判定建议的“喜用神”与“忌神”。
+本库支持三种不同的取用神及其忌神判定的方法：
+
+1. **格局法 (Ge Ju Fa)**：传统的子平格局法，依月令、透干定格，并结合通关、制化等逻辑取用。
+2. **旺衰法 (Wang Shuai)**：依据日主强弱（身强/身弱/专旺/从格）进行扶抑或顺势取用。
+3. **调侯法 (Climate)**：根据命局的寒暖燥湿，选取特定的天干（如丙火解冻、癸水滋润）作为用神。
 
 ```swift
-let analysis = pillars.usefulGodAnalysis
+// 1. 默认分析 (默认使用格局法)
+let analysis = pillars.usefulGodAnalysis 
 
-// 1. 获取建议用神 (Ten Gods)
-// 返回一个 TenGods 数组，例如 [.directResource, .indirectResource]
-let usefulGods = analysis.yongShen
-print("建议用神: \(usefulGods.map { $0.name })") 
+// 2. 显式指定方法
+let patternResult = pillars.calculateUsefulGod(method: .pattern)   // 格局法
+let strengthResult = pillars.calculateUsefulGod(method: .wangShuai) // 旺衰法
+let climateResult = pillars.calculateUsefulGod(method: .tiaoHou)    // 调侯法
 
-// 2. 获取忌神 (Ten Gods)
-let jiGods = analysis.jiShen
-print("忌神: \(jiGods.map { $0.name })")
+print("--- 格局法 ---")
+print("建议用神: \(patternResult.yongShen.map { $0.name })")
+print(patternResult.description)
 
-// 3. 获取喜用五行 (Five Elements)
-// 返回一个 FiveElements 数组，例如 [.water, .metal]
-let favElements = analysis.favorableElements
-print("喜用五行: \(favElements.map { $0.name })")
+print("--- 旺衰法 ---")
+print("建议用神: \(strengthResult.yongShen.map { $0.name })")
+print(strengthResult.description)
 
-// 4. 获取忌神五行 (Five Elements)
-let unfavElements = analysis.unfavorableElements
-print("忌神五行: \(unfavElements.map { $0.name })")
-
-// 5. 获取完整排盘分析描述 (String)
-// 包含能量计算、格局判定及取用理由
-print(analysis.description)
+print("--- 调侯法 ---")
+print("状态: \(climateResult.description)")
 ```
 
 ## 📄 许可证
