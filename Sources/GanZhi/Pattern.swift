@@ -12,7 +12,9 @@ public struct Pattern: CustomStringConvertible {
         case monthBranchMainQi = "月支本气"
         case dominantStrength = "十神成势"
         case yueRen = "月刃格"
-        case followSevenKillings = "身弱杀强，建议去印比从杀"
+        case followSevenKillings = "从杀格"
+        case followWealth = "从财格"
+        case followChild = "从儿格"
         case special = "特殊格局"
         
         public var description: String {
@@ -29,7 +31,9 @@ public struct Pattern: CustomStringConvertible {
                 case .monthBranchMainQi: return "月支本氣"
                 case .dominantStrength: return "十神成勢"
                 case .yueRen: return "月刃格"
-                case .followSevenKillings: return "身弱殺強，建議去印比從殺"
+                case .followSevenKillings: return "從殺格"
+                case .followWealth: return "從財格"
+                case .followChild: return "從兒格"
                 case .special: return "特殊格局"
                 }
             case .japanese:
@@ -42,7 +46,9 @@ public struct Pattern: CustomStringConvertible {
                 case .monthBranchMainQi: return "月支本気"
                 case .dominantStrength: return "通変星が勢力を成した"
                 case .yueRen: return "月刃格"
-                case .followSevenKillings: return "身弱殺強、印比を捨てて殺に従うべし"
+                case .followSevenKillings: return "従殺格"
+                case .followWealth: return "従財格"
+                case .followChild: return "従児格"
                 case .special: return "特殊格局"
                 }
             case .english:
@@ -55,7 +61,9 @@ public struct Pattern: CustomStringConvertible {
                 case .monthBranchMainQi: return "Month Branch Main Qi"
                 case .dominantStrength: return "The ten god is dominant"
                 case .yueRen: return "Yue Ren Pattern"
-                case .followSevenKillings: return "Weak self with strong killer, follow the killer"
+                case .followSevenKillings: return "Follow Seven Killings"
+                case .followWealth: return "Follow Wealth"
+                case .followChild: return "Follow Child"
                 case .special: return "Special Pattern"
                 }
             }
@@ -165,10 +173,65 @@ extension FourPillars {
         
         let primary = getPrimary()
 
-        // 3. Check Ten God Strength for auxiliary pattern
+        // 3. Check Special Follow Patterns
         let strengths = self.tenGodStrengths
-        let primaryStrength = strengths[primary.tenGod, default: 0]
+        let totalStrength = strengths.values.reduce(0, +)
         
+        let resourcePeerStrength = 
+            strengths[.directResource, default: 0] + strengths[.indirectResource, default: 0] +
+            strengths[.friend, default: 0] + strengths[.robWealth, default: 0]
+        let resourceStrength = strengths[.directResource, default: 0] + strengths[.indirectResource, default: 0]
+        let wealthStrength = strengths[.directWealth, default: 0] + strengths[.indirectWealth, default: 0]
+        
+        // Root check logic
+        let branches = [self.year.branch.value, self.month.branch.value, self.day.branch.value, self.hour.branch.value]
+        let hasRoot: Bool
+        if dayStem.yinYang == .yin {
+            // Yin Day Master: No Ben Qi or Yu Qi of the same element
+            hasRoot = branches.contains { b in 
+                b.benQi == dayStem.value || b.zhongQi == dayStem.value || b.yuQi == dayStem.value
+            }
+        } else {
+            // Yang Day Master: Absolutely no hidden stems of the same Five Element
+            hasRoot = branches.contains { b in
+                let hidden = b.hiddenStems
+                return hidden.contains(where: { $0.fiveElement == dayStem.value.fiveElement })
+            }
+        }
+
+        if !hasRoot && totalStrength > 0 {
+            // Follow Seven Killings (Officer/Killer)
+            let killerStrength = strengths[.sevenKillings, default: 0] + strengths[.directOfficer, default: 0]
+            if primary.tenGod == .sevenKillings || primary.tenGod == .directOfficer {
+                let supportStrength = max(0, resourcePeerStrength - wealthStrength)
+                let killerPercentage = killerStrength / totalStrength
+                if killerPercentage > 0.5 && supportStrength <= 5.5 && (killerStrength - supportStrength) >= supportStrength * 2 {
+                    return Pattern(tenGod: primary.tenGod, method: .followSevenKillings, customName: "从杀格")
+                }
+            }
+            
+            // Follow Wealth (Direct/Indirect Wealth)
+            let totalWealthStrength = strengths[.directWealth, default: 0] + strengths[.indirectWealth, default: 0]
+            if primary.tenGod == .directWealth || primary.tenGod == .indirectWealth {
+                let supportStrength = max(0, resourcePeerStrength - wealthStrength)
+                let wealthPercentage = totalWealthStrength / totalStrength
+                if wealthPercentage > 0.5 && supportStrength <= 5.5 && (wealthStrength - supportStrength) >= supportStrength * 2 {
+                    return Pattern(tenGod: primary.tenGod, method: .followWealth, customName: "从财格")
+                }
+            }
+            
+            // Follow Child (Eating God/Hurting Officer)
+            let childStrength = strengths[.eatingGod, default: 0] + strengths[.hurtingOfficer, default: 0]
+            if primary.tenGod == .eatingGod || primary.tenGod == .hurtingOfficer {
+                let supportStrength = max(0, resourceStrength - wealthStrength)
+                let childPercentage = childStrength / totalStrength
+                if childPercentage > 0.5 && supportStrength <= 3.0 && (childStrength - supportStrength) >= supportStrength * 2 {
+                    return Pattern(tenGod: primary.tenGod, method: .followChild, customName: "从儿格")
+                }
+            }
+        }
+        
+        // 4. Check Ten God Strength for auxiliary pattern
         let thresholdStrength: Double
         if primary.tenGod == .friend || primary.tenGod == .robWealth {
             // For Peer patterns (JianLu/YangRen), the "dominant" force is the entire Peer group (Self + Friend + RobWealth).
@@ -189,33 +252,6 @@ extension FourPillars {
             // Must be strictly stronger than the threshold
             if strongest.value > thresholdStrength && strongest.key != primary.tenGod {
                 return Pattern(tenGod: primary.tenGod, method: primary.method, customName: primary.customName, auxiliaryTenGod: strongest.key, auxiliaryMethod: .dominantStrength)
-            }
-        }
-        
-        // 4. Check Special Seven Killings Pattern (From Ge / Follow the Killer)
-        let totalStrength = strengths.values.reduce(0, +)
-        let supportStrength = strengths[.directResource, default: 0] + strengths[.friend, default: 0]
-        
-        // Conditions:
-        // - DM is Yin
-        // - No root (Ben Qi or Yu Qi) in any branch
-        // - Primary is Seven Killings and no auxiliary
-        // - Seven Killings strength > 50%
-        // - Support (Direct Resource + non-DM Friend) <= 1.0
-        if dayStem.yinYang == .yin && primary.tenGod == .sevenKillings {
-            // Check roots
-            let branches = [self.year.branch.value, self.month.branch.value, self.day.branch.value, self.hour.branch.value]
-            let hasRoot = branches.contains { b in 
-                b.benQi == dayStem.value || b.yuQi == dayStem.value
-            }
-            
-            if !hasRoot {
-                let primaryStrengthPercentage = (totalStrength > 0) ? (primaryStrength / totalStrength) : 0
-                // supportStrength includes DM energy (1.0). 
-                // So supportStrength <= 2.0 means at most one extra floating Zheng Yin or Bi Jian.
-                if primaryStrengthPercentage > 0.5 && supportStrength <= 2.0 {
-                    return Pattern(tenGod: .sevenKillings, method: .followSevenKillings, customName: "特殊七杀格（从格）")
-                }
             }
         }
         
