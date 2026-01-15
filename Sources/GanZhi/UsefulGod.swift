@@ -135,72 +135,91 @@ public struct UsefulGodCalculator {
         let pattern = chart.determinePattern()
         let patternTenGod = pattern.tenGod
 
+        func createResult(reasons: [String], fav: Set<FiveElements>, unfav: Set<FiveElements>, dm: FiveElements) -> UsefulGodResult {
+            var favGods: Set<TenGods> = []
+            var unfavGods: Set<TenGods> = []
+
+            func godsOf(_ element: FiveElements) -> [TenGods] {
+                var list: [TenGods] = []
+                for god in TenGods.allCases {
+                    if elementOf(god, relativeTo: dm) == element {
+                        list.append(god)
+                    }
+                }
+                return list
+            }
+
+            for elm in fav {
+                favGods.formUnion(godsOf(elm))
+            }
+            for elm in unfav {
+                unfavGods.formUnion(godsOf(elm))
+            }
+
+            // Method-specific exclusions (Pattern Method)
+            if method == .pattern {
+                if patternTenGod == .eatingGod {
+                    favGods.remove(.indirectResource)
+                }
+                if patternTenGod == .hurtingOfficer {
+                    favGods.remove(.directOfficer)
+                }
+                if patternTenGod == .directOfficer {
+                    favGods.remove(.hurtingOfficer)
+                }
+            }
+
+            return UsefulGodResult(
+                yongShen: Array(favGods).sorted(by: { $0.rawValue < $1.rawValue }),
+                jiShen: Array(unfavGods).sorted(by: { $0.rawValue < $1.rawValue }),
+                favorableElements: Array(fav).sorted(by: { $0.rawValue < $1.rawValue }),
+                unfavorableElements: Array(unfav).sorted(by: { $0.rawValue < $1.rawValue }),
+                description: reasons.joined(separator: "\n")
+            )
+        }
+
         // 3. Logic Branching
 
         switch method {
         case .pattern:
-            // Check for Cong Ge (Follow Pattern)
-            // Criteria:
-            // 1. Day Master is Yin.
-            // 2. Day Master is Rootless (Stem not in Branch Hidden Stems).
-            // 3. Pattern is Wealth, Officer/Killing, or Output (Eating/Hurting).
-            // 4. Pattern Element Energy > 3.5 * Support Energy.
-
-            let dmStem = chart.day.stem.value
-            let isYinDM = (dmStem.yinYang == .yin)
-
-            var isRootless = true
-            let branches = [
-                chart.year.branch, chart.month.branch, chart.day.branch, chart.hour.branch,
-            ]
-            for branch in branches {
-                let hidden = branch.hiddenStems
-                if hidden.contains(dmStem) {
-                    isRootless = false
-                    break
-                }
-            }
-
-            let validCongGeTypes: Set<TenGods> = [
-                .directWealth, .indirectWealth,
-                .directOfficer, .sevenKillings,
-                .eatingGod, .hurtingOfficer,
-            ]
-            let isCongGeType = validCongGeTypes.contains(patternTenGod)
-
-            let patternElement = elementOf(patternTenGod, relativeTo: dmElement)
-            let patternEnergy = energies[patternElement] ?? 0
-
-            // user specified "3.5 times" logic
-            let isDominantPattern = patternEnergy > 3.5 * supportEnergy
-
-            if isYinDM && isRootless && isCongGeType && isDominantPattern {
-                reasons.append("Status: Cong Ge (Follow Pattern)")
-                reasons.append(
-                    "Criteria Met: Yin DM, Rootless, Pattern \(pattern.tenGod.name), Energy > 3.5x Support"
-                )
-
-                let usefulSource = getParent(patternElement)
-                let usefulSelf = patternElement
-                let jiController = getController(patternElement)
-
-                reasons.append(
-                    "Useful God: Source of Pattern [\(usefulSource.description)] & Pattern Element [\(usefulSelf.description)]"
-                )
-                reasons.append("Ji God: Controller of Pattern [\(jiController.description)]")
-
-                favElements.insert(usefulSource)
-                favElements.insert(usefulSelf)
-                unfavElements.insert(jiController)
-                // If Cong Ge is found, we return the result immediately.
-                // The rest of the pattern logic should not apply.
-                return UsefulGodResult(
-                    yongShen: [],  // Ten Gods not specifically assigned for Cong Ge in this scope
-                    jiShen: [],
-                    favorableElements: Array(favElements),
-                    unfavorableElements: Array(unfavElements),
-                    description: reasons.joined(separator: "\n")
-                )
+            let officer = getController(dmElement)
+            
+            // Check for Follow Patterns (Cong Ge) determined by Pattern.swift
+            if pattern.method == .followSevenKillings {
+                reasons.append("Status: Follow Seven Killings (从杀格)")
+                favElements.insert(controlled)
+                favElements.insert(officer)
+                unfavElements.insert(child)
+                unfavElements.insert(parent)
+                
+                reasons.append("Useful God: Wealth & Officer [\(controlled.description), \(officer.description)]")
+                reasons.append("Ji God: Output & Resource [\(child.description), \(parent.description)]")
+                
+                return createResult(reasons: reasons, fav: favElements, unfav: unfavElements, dm: dmElement)
+            } else if pattern.method == .followWealth {
+                reasons.append("Status: Follow Wealth (从财格)")
+                favElements.insert(child)
+                favElements.insert(controlled)
+                favElements.insert(officer)
+                unfavElements.insert(dmElement)
+                unfavElements.insert(parent)
+                
+                reasons.append("Useful God: Output, Wealth & Officer [\(child.description), \(controlled.description), \(officer.description)]")
+                reasons.append("Ji God: Peer & Resource [\(dmElement.description), \(parent.description)]")
+                
+                return createResult(reasons: reasons, fav: favElements, unfav: unfavElements, dm: dmElement)
+            } else if pattern.method == .followChild {
+                reasons.append("Status: Follow Child (从儿格)")
+                favElements.insert(controlled)
+                favElements.insert(child)
+                favElements.insert(dmElement)
+                unfavElements.insert(parent)
+                unfavElements.insert(officer)
+                
+                reasons.append("Useful God: Wealth, Output & Peer [\(controlled.description), \(child.description), \(dmElement.description)]")
+                reasons.append("Ji God: Resource & Officer [\(parent.description), \(officer.description)]")
+                
+                return createResult(reasons: reasons, fav: favElements, unfav: unfavElements, dm: dmElement)
             }
 
             // --- New Logic Start ---
@@ -584,64 +603,7 @@ public struct UsefulGodCalculator {
             }
         }
 
-        // Convert Elements to Representative Ten Gods for Output
-        var favGods: Set<TenGods> = []
-        var unfavGods: Set<TenGods> = []
-
-        func godsOf(_ element: FiveElements) -> [TenGods] {
-            var list: [TenGods] = []
-            for god in TenGods.allCases {
-                if elementOf(god, relativeTo: dmElement) == element {
-                    list.append(god)
-                }
-            }
-            return list
-        }
-
-        for elm in favElements {
-            favGods.formUnion(godsOf(elm))
-        }
-        for elm in unfavElements {
-            unfavGods.formUnion(godsOf(elm))
-        }
-
-        // Final Adjustments based on User Feedback (APPLIES TO BOTH METHODS FOR CONSISTENCY, OR ONLY PATTERN?)
-        // User request for Wang Shuai #1-5 didn't mention exclusions.
-        // Existing exclusions were: "Eating God Pattern avoids Indirect Resource".
-        // These are Pattern-specific "Method specific exclusions".
-        // Wang Shuai logic is purely elemental.
-        // So I will APPLY exclusions ONLY if method == .pattern.
-
-        if method == .pattern {
-            // 1. Eating God Pattern: Do not suggest Indirect Resource (Owl).
-            if patternTenGod == .eatingGod {
-                if favGods.contains(.indirectResource) {
-                    favGods.remove(.indirectResource)
-                }
-            }
-
-            // 2. Hurting Officer Pattern: Do not suggest Direct Officer.
-            if patternTenGod == .hurtingOfficer {
-                if favGods.contains(.directOfficer) {
-                    favGods.remove(.directOfficer)
-                }
-            }
-
-            // 3. Direct Officer Pattern: Do not suggest Hurting Officer.
-            if patternTenGod == .directOfficer {
-                if favGods.contains(.hurtingOfficer) {
-                    favGods.remove(.hurtingOfficer)
-                }
-            }
-        }
-
-        return UsefulGodResult(
-            yongShen: Array(favGods).sorted(by: { $0.rawValue < $1.rawValue }),
-            jiShen: Array(unfavGods).sorted(by: { $0.rawValue < $1.rawValue }),
-            favorableElements: Array(favElements).sorted(by: { $0.rawValue < $1.rawValue }),
-            unfavorableElements: Array(unfavElements).sorted(by: { $0.rawValue < $1.rawValue }),
-            description: reasons.joined(separator: "\n")
-        )
+        return createResult(reasons: reasons, fav: favElements, unfav: unfavElements, dm: dmElement)
     }
 }
 
