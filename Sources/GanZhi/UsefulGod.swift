@@ -184,7 +184,6 @@ public struct UsefulGodCalculator {
         case .pattern:
             let officer = getController(dmElement)
             
-            // Check for Follow Patterns (Cong Ge) determined by Pattern.swift
             if pattern.method == .followSevenKillings {
                 reasons.append("Status: Follow Seven Killings (从杀格)")
                 favElements.insert(controlled)
@@ -220,6 +219,29 @@ public struct UsefulGodCalculator {
                 reasons.append("Ji God: Resource & Officer [\(parent.description), \(officer.description)]")
                 
                 return createResult(reasons: reasons, fav: favElements, unfav: unfavElements, dm: dmElement)
+            } else if pattern.method == .quZhi || pattern.method == .yanShang || pattern.method == .jiaSe || pattern.method == .congGe {
+                reasons.append("Status: Special Pattern (\(pattern.method.description))")
+                favElements.insert(child)        // Output / 食伤
+                favElements.insert(dmElement)   // Peer / 比劫
+                favElements.insert(parent)      // Resource / 印
+                unfavElements.insert(officer)  // Officer / 官杀
+                unfavElements.insert(controlled) // Wealth / 财星
+                
+                reasons.append("Useful God: Output, Peer & Resource [\(child.description), \(dmElement.description), \(parent.description)]")
+                reasons.append("Ji God: Officer & Wealth [\(officer.description), \(controlled.description)]")
+                
+                return createResult(reasons: reasons, fav: favElements, unfav: unfavElements, dm: dmElement)
+            } else if pattern.method == .runXia {
+                reasons.append("Status: Special Pattern (润下格)")
+                favElements.insert(child)        // Output / 食伤
+                favElements.insert(controlled)  // Wealth / 财星
+                favElements.insert(parent)      // Resource / 印
+                unfavElements.insert(officer)  // Officer / 官杀
+                
+                reasons.append("Useful God: Output, Wealth & Resource [\(child.description), \(controlled.description), \(parent.description)]")
+                reasons.append("Ji God: Officer [\(officer.description)]")
+                
+                return createResult(reasons: reasons, fav: favElements, unfav: unfavElements, dm: dmElement)
             }
 
             // --- New Logic Start ---
@@ -243,218 +265,171 @@ public struct UsefulGodCalculator {
             let pTenGod = patternTenGod  // Use existing variable name
             let pMethod = pattern.method
 
-            // Case 1: Resource > 50%
-            if pctResource > 0.5 {
-                reasons.append("Status: Resource Dominant (>50%)")
-                reasons.append("Ji God: Resource [\(parent.description)]")
-                unfavElements.insert(parent)
+            func getElementsFor(pTenGod: TenGods, pMethod: Pattern.DeterminationMethod) -> (fav: Set<FiveElements>, unfav: Set<FiveElements>, reasons: [String]) {
+                var fav: Set<FiveElements> = []
+                var unfav: Set<FiveElements> = []
+                var r: [String] = []
 
-                if pctConsumption > pctSelf {
-                    // Consumption > Self -> Useful: Self (Friend/Rob)
-                    reasons.append(
-                        "Useful God: Self (Consumption > Self) [\(dmElement.description)]")
-                    favElements.insert(dmElement)
+                if pctResource > 0.5 {
+                    r.append("Pattern Logic (\(pTenGod.description)): Resource Dominant (>50%)")
+                    unfav.insert(parent)
+                    if pctConsumption > pctSelf {
+                        r.append("Useful God: Self (Consumption > Self) [\(dmElement.description)]")
+                        fav.insert(dmElement)
+                    } else {
+                        if eOutput >= eOfficer {
+                            r.append("Useful God: Output (Output >= Officer) [\(child.description)]")
+                            fav.insert(child)
+                        } else {
+                            r.append("Useful God: Officer (Officer > Output) [\(getController(dmElement).description)]")
+                            fav.insert(getController(dmElement))
+                        }
+                    }
+                } else if pctSelf > 0.5 {
+                    r.append("Pattern Logic (\(pTenGod.description)): Self Dominant (>50%)")
+                    unfav.insert(dmElement)
+                    if pMethod == .yangRen || pMethod == .jianLu || pMethod == .yueRen
+                        || [.directResource, .indirectResource, .directOfficer, .sevenKillings]
+                            .contains(pTenGod)
+                    {
+                        let officer = getController(dmElement)
+                        r.append("Useful God: Officer (Pattern Requirement) [\(officer.description)]")
+                        fav.insert(officer)
+                    } else if [.eatingGod, .hurtingOfficer].contains(pTenGod) {
+                        r.append("Useful God: Output (Pattern Requirement) [\(child.description)]")
+                        fav.insert(child)
+                    } else {
+                        if [.directWealth, .indirectWealth].contains(pTenGod) {
+                            r.append("Useful God: Wealth (Pattern Requirement) [\(controlled.description)]")
+                            fav.insert(controlled)
+                        } else {
+                            r.append("Useful God: Max Consumption (Fallback)")
+                            let maxCons = [
+                                (child, eOutput), (controlled, eWealth),
+                                (getController(dmElement), eOfficer),
+                            ]
+                            .max(by: { $0.1 < $1.1 })!.0
+                            fav.insert(maxCons)
+                        }
+                    }
                 } else {
-                    // Self > Consumption -> Useful: More of Output vs Officer
-                    if eOutput >= eOfficer {
-                        reasons.append(
-                            "Useful God: Output (Output >= Officer) [\(child.description)]")
-                        favElements.insert(child)
-                    } else {
-                        reasons.append(
-                            "Useful God: Officer (Officer > Output) [\(getController(dmElement).description)]"
-                        )
-                        favElements.insert(getController(dmElement))
-                    }
-                }
-            }
-            // Case 2: Self > 50%
-            else if pctSelf > 0.5 {
-                reasons.append("Status: Self Dominant (>50%)")
-                reasons.append("Ji God: Self [\(dmElement.description)]")
-                unfavElements.insert(dmElement)
-
-                // Pattern Logic
-                if pMethod == .yangRen || pMethod == .jianLu || pMethod == .yueRen
-                    || [.directResource, .indirectResource, .directOfficer, .sevenKillings]
-                        .contains(pTenGod)
-                {
-                    // "印格用官杀，官杀格用官杀，羊刃建禄用官杀"
-                    let officer = getController(dmElement)
-                    reasons.append(
-                        "Useful God: Officer (Pattern Requirement) [\(officer.description)]")
-                    favElements.insert(officer)
-                } else if [.eatingGod, .hurtingOfficer].contains(pTenGod) {
-                    // "食伤格用食伤"
-                    reasons.append(
-                        "Useful God: Output (Pattern Requirement) [\(child.description)]")
-                    favElements.insert(child)
-                } else {
-                    // Fallback for Wealth or others not strictly listed: Max of Consumption
-                    // Assuming Wealth checks Wealth
-                    if [.directWealth, .indirectWealth].contains(pTenGod) {
-                        reasons.append(
-                            "Useful God: Wealth (Pattern Requirement) [\(controlled.description)]")
-                        favElements.insert(controlled)
-                    } else {
-                        reasons.append("Useful God: Max Consumption (Fallback)")
-                        // Simple fallback: Pick max of Output/Wealth/Officer
-                        let maxCons = [
-                            (child, eOutput), (controlled, eWealth),
-                            (getController(dmElement), eOfficer),
+                    let selfTotalPct = pctSelf + pctResource
+                    r.append("Pattern Logic (\(pTenGod.description)): Normal/Balanced (Self+Res: \(String(format: "%.1f%%", selfTotalPct*100)))")
+                    if [.directResource, .indirectResource].contains(pTenGod) {
+                        let parts = [
+                            ("Resource", pctResource), ("Self", pctSelf),
+                            ("Consumption", pctConsumption),
                         ]
-                        .max(by: { $0.1 < $1.1 })!.0
-                        favElements.insert(maxCons)
-                    }
-                }
-            }
-            // Case 3: Balanced / Others
-            else {
-                let selfTotalPct = pctSelf + pctResource
-                reasons.append(
-                    "Status: Normal/Balanced (Self+Res: \(String(format: "%.1f%%", selfTotalPct*100)))"
-                )
-                reasons.append("Pattern: \(pattern.description)")
-
-                // 3.1 Resource Pattern
-                if [.directResource, .indirectResource].contains(pTenGod) {
-                    // Refined Logic Check: compare Resource, Self, Consumption
-                    // If Resource matches the strongest part, use Output, Ji Resource.
-
-                    let parts = [
-                        ("Resource", pctResource), ("Self", pctSelf),
-                        ("Consumption", pctConsumption),
-                    ]
-                    let strongestPart = parts.max(by: { $0.1 < $1.1 })!.0
-                    let weakestPart = parts.min(by: { $0.1 < $1.1 })!.0
-
-                    if strongestPart == "Resource" && weakestPart == "Consumption" {
-                        reasons.append(
-                            "Useful God: Output (Resource is strongest part) [\(child.description)]"
-                        )
-                        favElements.insert(child)
-                        reasons.append("Ji God: Resource (Strongest part) [\(parent.description)]")
-                        unfavElements.insert(parent)
-                    } else {
-                        // Original Logic
-                        // Useful: Stronger of Officer / Output
-                        // Ji: Controller of Useful
-                        let target: FiveElements
-                        if eOfficer >= eOutput {
-                            target = getController(dmElement)
-                            reasons.append(
-                                "Useful God: Officer (Officer >= Output) [\(target.description)]")
+                        let strongestPart = parts.max(by: { $0.1 < $1.1 })!.0
+                        let weakestPart = parts.min(by: { $0.1 < $1.1 })!.0
+                        if strongestPart == "Resource" && weakestPart == "Consumption" {
+                            r.append("Useful God: Output (Resource is strongest part) [\(child.description)]")
+                            fav.insert(child)
+                            r.append("Ji God: Resource (Strongest part) [\(parent.description)]")
+                            unfav.insert(parent)
                         } else {
-                            target = child
-                            reasons.append(
-                                "Useful God: Output (Output > Officer) [\(target.description)]")
+                            let target: FiveElements
+                            if eOfficer >= eOutput {
+                                target = getController(dmElement)
+                                r.append("Useful God: Officer (Officer >= Output) [\(target.description)]")
+                            } else {
+                                target = child
+                                r.append("Useful God: Output (Output > Officer) [\(target.description)]")
+                            }
+                            fav.insert(target)
+                            unfav.insert(getController(target))
+                            r.append("Ji God: Controller of Useful [\(getController(target).description)]")
                         }
-                        favElements.insert(target)
-                        unfavElements.insert(getController(target))
-                        reasons.append(
-                            "Ji God: Controller of Useful [\(getController(target).description)]")
-                    }
-                }
-                // 3.2 Wealth Pattern
-                else if [.directWealth, .indirectWealth].contains(pTenGod) {
-                    // If Cons > SelfTotal -> Useful: Peer, Ji: Officer
-                    // Else -> Useful: Min(Wealth, Output), Ji: Resource
-
-                    if pctConsumption > selfTotalPct {
-                        reasons.append(
-                            "Useful God: Peer (Cons > Self+Res) [\(dmElement.description)]")
-                        reasons.append("Ji God: Officer [\(getController(dmElement).description)]")
-                        favElements.insert(dmElement)
-                        unfavElements.insert(getController(dmElement))
-                    } else {
-                        // Smaller of Wealth vs Output
-                        let target: FiveElements
-                        if eWealth <= eOutput {
-                            target = controlled
-                            reasons.append(
-                                "Useful God: Wealth (Wealth <= Output) [\(target.description)]")
+                    } else if [.directWealth, .indirectWealth].contains(pTenGod) {
+                        if pctConsumption > selfTotalPct {
+                            r.append("Useful God: Peer (Cons > Self+Res) [\(dmElement.description)]")
+                            r.append("Ji God: Officer [\(getController(dmElement).description)]")
+                            fav.insert(dmElement)
+                            unfav.insert(getController(dmElement))
                         } else {
-                            target = child
-                            reasons.append(
-                                "Useful God: Output (Output < Wealth) [\(target.description)]")
+                            let target: FiveElements
+                            if eWealth <= eOutput {
+                                target = controlled
+                                r.append("Useful God: Wealth (Wealth <= Output) [\(target.description)]")
+                            } else {
+                                target = child
+                                r.append("Useful God: Output (Output < Wealth) [\(target.description)]")
+                            }
+                            fav.insert(target)
+                            r.append("Ji God: Resource [\(parent.description)]")
+                            unfav.insert(parent)
                         }
-                        favElements.insert(target)
-                        reasons.append("Ji God: Resource [\(parent.description)]")
-                        unfavElements.insert(parent)
-                    }
-                }
-                // 3.3 Officer Pattern
-                else if [.directOfficer, .sevenKillings].contains(pTenGod) {
-                    // Useful: Max(Output, Peer, Resource)
-                    // Ji: Controller of Useful
-                    let candidates = [
-                        (child, eOutput),
-                        (dmElement, eSelf),
-                        (parent, eResource),
-                    ]
-                    let winner = candidates.max(by: { $0.1 < $1.1 })!.0
-                    reasons.append(
-                        "Useful God: Max(Output, Peer, Resource) [\(winner.description)]")
-                    favElements.insert(winner)
-
-                    let ji = getController(winner)
-                    reasons.append("Ji God: Controller of Useful [\(ji.description)]")
-                    unfavElements.insert(ji)
-                }
-                // 3.4 Output Pattern
-                else if [.eatingGod, .hurtingOfficer].contains(pTenGod) {
-                    // If Cons > 2 * SelfTotal -> Useful: Resource, Peer. Ji: Max(Consumption)
-                    // Else -> Useful: Max(Wealth, Officer). Ji: Controller of Useful
-
-                    if pctConsumption > 2 * selfTotalPct {
-                        reasons.append("Useful God: Resource & Peer (Cons > 2*(Self+Res))")
-                        favElements.insert(parent)
-                        favElements.insert(dmElement)
-
-                        // Ji: Max(Consumption)
-                        let maxCons = [
-                            (child, eOutput), (controlled, eWealth),
-                            (getController(dmElement), eOfficer),
-                        ]
-                        .max(by: { $0.1 < $1.1 })!.0
-                        reasons.append("Ji God: Max Consumption [\(maxCons.description)]")
-                        unfavElements.insert(maxCons)
-                    } else {
-                        // Useful: Max(Wealth, Officer)
-                        let winner: FiveElements
-                        if eWealth >= eOfficer {
-                            winner = controlled
-                            reasons.append(
-                                "Useful God: Wealth (Wealth >= Officer) [\(winner.description)]")
-                        } else {
-                            winner = getController(dmElement)
-                            reasons.append(
-                                "Useful God: Officer (Officer > Wealth) [\(winner.description)]")
-                        }
-                        favElements.insert(winner)
-
+                    } else if [.directOfficer, .sevenKillings].contains(pTenGod) {
+                        let candidates = [(child, eOutput), (dmElement, eSelf), (parent, eResource)]
+                        let winner = candidates.max(by: { $0.1 < $1.1 })!.0
+                        r.append("Useful God: Max(Output, Peer, Resource) [\(winner.description)]")
+                        fav.insert(winner)
                         let ji = getController(winner)
-                        reasons.append("Ji God: Controller of Useful [\(ji.description)]")
-                        unfavElements.insert(ji)
+                        r.append("Ji God: Controller of Useful [\(ji.description)]")
+                        unfav.insert(ji)
+                    } else if [.eatingGod, .hurtingOfficer].contains(pTenGod) {
+                        if pctConsumption > 2 * selfTotalPct {
+                            r.append("Useful God: Resource & Peer (Cons > 2*(Self+Res))")
+                            fav.insert(parent)
+                            fav.insert(dmElement)
+                            let maxCons = [
+                                (child, eOutput), (controlled, eWealth),
+                                (getController(dmElement), eOfficer),
+                            ]
+                            .max(by: { $0.1 < $1.1 })!.0
+                            r.append("Ji God: Max Consumption [\(maxCons.description)]")
+                            unfav.insert(maxCons)
+                        } else {
+                            let winner: FiveElements
+                            if eWealth >= eOfficer {
+                                winner = controlled
+                                r.append("Useful God: Wealth (Wealth >= Officer) [\(winner.description)]")
+                            } else {
+                                winner = getController(dmElement)
+                                r.append("Useful God: Officer (Officer > Wealth) [\(winner.description)]")
+                            }
+                            fav.insert(winner)
+                            let ji = getController(winner)
+                            r.append("Ji God: Controller of Useful [\(ji.description)]")
+                            unfav.insert(ji)
+                        }
+                    } else {
+                        r.append("Status: Blade/Luck/Other")
+                        r.append("Ji God: Peer [\(dmElement.description)]")
+                        unfav.insert(dmElement)
+                        let maxCons = [
+                            (child, eOutput), (controlled, eWealth),
+                            (getController(dmElement), eOfficer),
+                        ]
+                        .max(by: { $0.1 < $1.1 })!.0
+                        r.append("Useful God: Max Consumption [\(maxCons.description)]")
+                        fav.insert(maxCons)
                     }
                 }
-                // 3.5 Blade/Luck/Others
-                else {
-                    // "羊刃月刃和建禄的情况，忌神为比劫，用神为消耗里面最大的那个"
-                    // Also covers default fallback
-                    reasons.append("Status: Blade/Luck/Other")
-                    reasons.append("Ji God: Peer [\(dmElement.description)]")
-                    unfavElements.insert(dmElement)
+                return (fav, unfav, r)
+            }
 
-                    let maxCons = [
-                        (child, eOutput), (controlled, eWealth),
-                        (getController(dmElement), eOfficer),
-                    ]
-                    .max(by: { $0.1 < $1.1 })!.0
-                    reasons.append("Useful God: Max Consumption [\(maxCons.description)]")
-                    favElements.insert(maxCons)
+            var (primaryFav, primaryUnfav, primaryReasons) = getElementsFor(pTenGod: pTenGod, pMethod: pMethod)
+            reasons.append(contentsOf: primaryReasons)
+            
+            if let auxTenGod = pattern.auxiliaryTenGod, let auxMethod = pattern.auxiliaryMethod {
+                reasons.append("--- Auxiliary Pattern detected: \(auxTenGod.description) ---")
+                let (auxFav, auxUnfav, auxReasons) = getElementsFor(pTenGod: auxTenGod, pMethod: auxMethod)
+                reasons.append(contentsOf: auxReasons)
+                
+                primaryFav.formUnion(auxFav)
+                primaryUnfav.formUnion(auxUnfav)
+                
+                let intersection = primaryFav.intersection(primaryUnfav)
+                if !intersection.isEmpty {
+                    reasons.append("Conflicting elements removed: \(intersection.map { $0.description }.joined(separator: ", "))")
+                    primaryFav.subtract(intersection)
+                    primaryUnfav.subtract(intersection)
                 }
             }
+            
+            favElements = primaryFav
+            unfavElements = primaryUnfav
 
         case .wangShuai:
             // 1. Calculate Percentages

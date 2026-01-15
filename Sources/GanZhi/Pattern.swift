@@ -15,6 +15,11 @@ public struct Pattern: CustomStringConvertible {
         case followSevenKillings = "从杀格"
         case followWealth = "从财格"
         case followChild = "从儿格"
+        case quZhi = "曲直格"
+        case yanShang = "炎上格"
+        case jiaSe = "稼穑格"
+        case congGe = "从革格"
+        case runXia = "润下格"
         case special = "特殊格局"
         
         public var description: String {
@@ -34,6 +39,11 @@ public struct Pattern: CustomStringConvertible {
                 case .followSevenKillings: return "從殺格"
                 case .followWealth: return "從財格"
                 case .followChild: return "從兒格"
+                case .quZhi: return "曲直格"
+                case .yanShang: return "炎上格"
+                case .jiaSe: return "稼穑格"
+                case .congGe: return "從革格"
+                case .runXia: return "潤下格"
                 case .special: return "特殊格局"
                 }
             case .japanese:
@@ -49,6 +59,11 @@ public struct Pattern: CustomStringConvertible {
                 case .followSevenKillings: return "従殺格"
                 case .followWealth: return "従財格"
                 case .followChild: return "従児格"
+                case .quZhi: return "曲直格"
+                case .yanShang: return "炎上格"
+                case .jiaSe: return "稼穑格"
+                case .congGe: return "従革格"
+                case .runXia: return "潤下格"
                 case .special: return "特殊格局"
                 }
             case .english:
@@ -64,6 +79,11 @@ public struct Pattern: CustomStringConvertible {
                 case .followSevenKillings: return "Follow Seven Killings"
                 case .followWealth: return "Follow Wealth"
                 case .followChild: return "Follow Child"
+                case .quZhi: return "Qu Zhi Pattern"
+                case .yanShang: return "Yan Shang Pattern"
+                case .jiaSe: return "Jia Se Pattern"
+                case .congGe: return "Cong Ge Pattern"
+                case .runXia: return "Run Xia Pattern"
                 case .special: return "Special Pattern"
                 }
             }
@@ -231,10 +251,69 @@ extension FourPillars {
             }
         }
         
-        // 4. Check Ten God Strength for auxiliary pattern
+        // 4. Check Special "Vitalized" Patterns (专旺格)
+        let elementStrengths = self.elementStrengths
+        let killerStrength = strengths[.sevenKillings, default: 0] + strengths[.directOfficer, default: 0]
+        
+        // Helper to check for San He or San Hui of a specific element
+        func hasStrongCombination(for element: FiveElements) -> Bool {
+            let tripleSets: [FiveElements: Set<Branch>] = [
+                .water: [.shen, .zi, .chen],
+                .wood: [.hai, .mao, .wei],
+                .fire: [.yin, .wu, .xu],
+                .metal: [.si, .you, .chou]
+            ]
+            let directionalSets: [FiveElements: Set<String>] = [
+                .wood: ["寅", "卯", "辰"],
+                .fire: ["巳", "午", "未"],
+                .metal: ["申", "酉", "戌"],
+                .water: ["亥", "子", "丑"]
+            ]
+            
+            let chartBranches = Set([self.year.branch.value, self.month.branch.value, self.day.branch.value, self.hour.branch.value])
+            let chartBranchChars = Set(chartBranches.map { $0.character })
+            
+            if let tripleSet = tripleSets[element], tripleSet.isSubset(of: chartBranches) { return true }
+            if let directionalSet = directionalSets[element], directionalSet.isSubset(of: chartBranchChars) { return true }
+            
+            return false
+        }
+        
+        let dmElement = dayStem.value.fiveElement
+        let killerThreshold = (dmElement == .water) ? 2.0 : 1.5
+        if killerStrength < killerThreshold {
+            let elementStrength = elementStrengths[dmElement, default: 0]
+            
+            switch dmElement {
+            case .wood:
+                if (hasStrongCombination(for: .wood) || elementStrength >= 24.2) {
+                    return Pattern(tenGod: .friend, method: .quZhi, customName: Pattern.DeterminationMethod.quZhi.description)
+                }
+            case .fire:
+                if (hasStrongCombination(for: .fire) || elementStrength >= 23.9) {
+                    return Pattern(tenGod: .friend, method: .yanShang, customName: Pattern.DeterminationMethod.yanShang.description)
+                }
+            case .earth:
+                let earthCount = branches.filter { [.chen, .xu, .chou, .wei].contains($0) }.count
+                if (earthCount >= 3 || elementStrength >= 33.2) {
+                    return Pattern(tenGod: .friend, method: .jiaSe, customName: Pattern.DeterminationMethod.jiaSe.description)
+                }
+            case .metal:
+                if (hasStrongCombination(for: .metal) || elementStrength >= 24.4) {
+                    return Pattern(tenGod: .friend, method: .congGe, customName: Pattern.DeterminationMethod.congGe.description)
+                }
+            case .water:
+                if (hasStrongCombination(for: .water) || elementStrength >= 23.8) {
+                    return Pattern(tenGod: .friend, method: .runXia, customName: Pattern.DeterminationMethod.runXia.description)
+                }
+            default: break
+            }
+        }
+        
+        // 5. Check Ten God Strength for auxiliary pattern
         let thresholdStrength: Double
-        if primary.tenGod == .friend || primary.tenGod == .robWealth {
-            // For Peer patterns (JianLu/YangRen), the "dominant" force is the entire Peer group (Self + Friend + RobWealth).
+        if primary.method == .jianLu || primary.method == .yangRen || primary.method == .yueRen {
+            // For Peer patterns (JianLu/YangRen/YueRen), the "dominant" force is the entire Peer group (Self + Friend + RobWealth).
             // An auxiliary must be stronger than the entire Body to be considered valid (e.g., extremely strong Wealth).
             // Note: tenGodStrengths excludes Day Master energy, so we add it manually.
             let selfEnergy = self.day.stem.energy
