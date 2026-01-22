@@ -66,24 +66,37 @@ public extension Date {
         let longitude = SolarCalculator.getSolarLongitude(date: date)
         
         // 2. Day Pillar Calculation
+        guard let utcTimeZone = TimeZone(secondsFromGMT: 0) else {
+            fatalError("Internal Error: Failed to instantiate GMT TimeZone.") // Should never happen
+        }
+        
         var utcCal = Calendar(identifier: .gregorian)
-        utcCal.timeZone = TimeZone(secondsFromGMT: 0)!
+        utcCal.timeZone = utcTimeZone
         
         // Base Date: 2000-01-01 (Wu-Wu, index 54)
-        let baseDate = DateComponents(calendar: utcCal, year: 2000, month: 1, day: 1).date!
+        guard let baseDate = DateComponents(calendar: utcCal, year: 2000, month: 1, day: 1).date else {
+            fatalError("Internal Error: Failed to create base date (2000-01-01).")
+        }
         
         // Extract Y/M/D from input date using the GREGORIAN calendar (User's local time context)
         let comps = gregCal.dateComponents([.year, .month, .day, .hour], from: date)
-        let currentYear = comps.year!
-        let currentMonth = comps.month!
-        let currentDay = comps.day!
-        let currentHour = comps.hour!
+        
+        guard let currentYear = comps.year,
+              let currentMonth = comps.month,
+              let currentDay = comps.day,
+              let currentHour = comps.hour else {
+            fatalError("Invalid Date: Could not extract Year/Month/Day/Hour from \(date)")
+        }
         
         // Construct Target Date as 20xx-xx-xx 00:00:00 UTC
         let targetComponents = DateComponents(year: currentYear, month: currentMonth, day: currentDay)
-        let targetDate = utcCal.date(from: targetComponents)!
+        guard let targetDate = utcCal.date(from: targetComponents) else {
+            fatalError("Invalid Date Components: Could not reconstruct date from \(currentYear)-\(currentMonth)-\(currentDay)")
+        }
         
-        let daysDiff = utcCal.dateComponents([.day], from: baseDate, to: targetDate).day!
+        guard let daysDiff = utcCal.dateComponents([.day], from: baseDate, to: targetDate).day else {
+            fatalError("Calculation Error: Could not calculate day difference between \(baseDate) and \(targetDate)")
+        }
         
         // Base Index 54 (Wu-Wu)
         let baseIndex = 54

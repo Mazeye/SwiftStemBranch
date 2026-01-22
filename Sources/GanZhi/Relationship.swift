@@ -63,11 +63,14 @@ public struct Relationship: CustomStringConvertible {
     public let type: RelationshipType
     public let pillars: [FourPillars.PillarType]
     public let characters: String
+    /// The Five Element associated with this relationship (e.g., .wood for Wood Directional Harmony).
+    public let relatedElement: FiveElements?
     
-    public init(type: RelationshipType, pillars: [FourPillars.PillarType], characters: String) {
+    public init(type: RelationshipType, pillars: [FourPillars.PillarType], characters: String, relatedElement: FiveElements? = nil) {
         self.type = type
         self.pillars = pillars
         self.characters = characters
+        self.relatedElement = relatedElement
     }
     
     public var description: String {

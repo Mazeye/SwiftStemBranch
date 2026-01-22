@@ -227,30 +227,30 @@ public struct FourPillars {
         let branches = pillars.map { $0.branch.value }
         
         // Directional Harmony (三会)
-        let directionalSets: [(Set<Branch>, String)] = [
-            ([.yin, .mao, .chen], "寅卯辰"),
-            ([.si, .wu, .wei], "巳午未"),
-            ([.shen, .you, .xu], "申酉戌"),
-            ([.hai, .zi, .chou], "亥子丑")
+        let directionalSets: [(Set<Branch>, String, FiveElements)] = [
+            ([.yin, .mao, .chen], "寅卯辰", .wood),
+            ([.si, .wu, .wei], "巳午未", .fire),
+            ([.shen, .you, .xu], "申酉戌", .metal),
+            ([.hai, .zi, .chou], "亥子丑", .water)
         ]
-        for (set, chars) in directionalSets {
+        for (set, chars, element) in directionalSets {
             if set.allSatisfy({ branches.contains($0) }) {
                 let involved = pillars.filter { set.contains($0.branch.value) }.map { $0.type }
-                rels.append(Relationship(type: .branchDirectional, pillars: involved, characters: chars))
+                rels.append(Relationship(type: .branchDirectional, pillars: involved, characters: chars, relatedElement: element))
             }
         }
         
         // Triple Harmony (三合)
-        let tripleSets: [(Set<Branch>, String)] = [
-            ([.shen, .zi, .chen], "申子辰"),
-            ([.hai, .mao, .wei], "亥卯未"),
-            ([.yin, .wu, .xu], "寅午戌"),
-            ([.si, .you, .chou], "巳酉丑")
+        let tripleSets: [(Set<Branch>, String, FiveElements)] = [
+            ([.shen, .zi, .chen], "申子辰", .water),
+            ([.hai, .mao, .wei], "亥卯未", .wood),
+            ([.yin, .wu, .xu], "寅午戌", .fire),
+            ([.si, .you, .chou], "巳酉丑", .metal)
         ]
-        for (set, chars) in tripleSets {
+        for (set, chars, element) in tripleSets {
             if set.allSatisfy({ branches.contains($0) }) {
                 let involved = pillars.filter { set.contains($0.branch.value) }.map { $0.type }
-                rels.append(Relationship(type: .branchTripleHarmony, pillars: involved, characters: chars))
+                rels.append(Relationship(type: .branchTripleHarmony, pillars: involved, characters: chars, relatedElement: element))
             }
         }
         

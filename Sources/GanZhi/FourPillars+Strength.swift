@@ -51,14 +51,7 @@ extension FourPillars {
         // Directional Harmony (San Hui) bonus
         for rel in self.relationships where rel.type == .branchDirectional {
             // Find which Ten God this element corresponds to
-            let element: FiveElements
-            switch rel.characters {
-            case "寅卯辰": element = .wood
-            case "巳午未": element = .fire
-            case "申酉戌": element = .metal
-            case "亥子丑": element = .water
-            default: continue
-            }
+            guard let element = rel.relatedElement else { continue }
             
             // Calculate Ten God for this element relative to Day Master
             // Note: We use the Day Master's YinYang to determine the exact Ten God.
@@ -94,12 +87,8 @@ extension FourPillars {
         // 3.1 Half San Hui (Half Directional) - Ten Gods
         var fullSanHuiElementsTG: Set<FiveElements> = []
         for rel in self.relationships where rel.type == .branchDirectional {
-             switch rel.characters {
-             case "寅卯辰": fullSanHuiElementsTG.insert(.wood)
-             case "巳午未": fullSanHuiElementsTG.insert(.fire)
-             case "申酉戌": fullSanHuiElementsTG.insert(.metal)
-             case "亥子丑": fullSanHuiElementsTG.insert(.water)
-             default: continue
+             if let element = rel.relatedElement {
+                 fullSanHuiElementsTG.insert(element)
              }
         }
         
@@ -203,14 +192,7 @@ extension FourPillars {
         
         // 3. Bonuses from Branch Relationships
         for rel in self.relationships where rel.type == .branchDirectional {
-            let element: FiveElements
-            switch rel.characters {
-            case "寅卯辰": element = .wood
-            case "巳午未": element = .fire
-            case "申酉戌": element = .metal
-            case "亥子丑": element = .water
-            default: continue
-            }
+            guard let element = rel.relatedElement else { continue }
             
             for pType in rel.pillars {
                 let bonus: Double = (pType == .month) ? 3.0 : 1.0
@@ -228,12 +210,8 @@ extension FourPillars {
         // 3.1 Half San Hui (Half Directional)
         var fullSanHuiElements: Set<FiveElements> = []
         for rel in self.relationships where rel.type == .branchDirectional {
-             switch rel.characters {
-             case "寅卯辰": fullSanHuiElements.insert(.wood)
-             case "巳午未": fullSanHuiElements.insert(.fire)
-             case "申酉戌": fullSanHuiElements.insert(.metal)
-             case "亥子丑": fullSanHuiElements.insert(.water)
-             default: continue
+             if let element = rel.relatedElement {
+                 fullSanHuiElements.insert(element)
              }
         }
         
