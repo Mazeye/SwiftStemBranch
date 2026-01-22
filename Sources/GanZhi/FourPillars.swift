@@ -155,7 +155,7 @@ public struct FourPillars {
         
         // Combination (五合): Diff is 5 (e.g., Jia-Ji: 1 and 6)
         if abs(s1.rawValue - s2.rawValue) == 5 {
-            return Relationship(type: .stemCombination, pillars: [p1.type, p2.type], characters: s1.character + s2.character)
+            return Relationship(type: .stemCombination, pillars: [p1.type.name, p2.type.name], characters: s1.character + s2.character)
         }
         
         // Clash (相冲): Standard is Geng-Jia, Xin-Yi, Ren-Bing, Gui-Ding
@@ -163,7 +163,8 @@ public struct FourPillars {
         let stems = [s1, s2].sorted(by: { $0.rawValue < $1.rawValue })
         let pairs: Set<[Stem]> = [[.jia, .geng], [.yi, .xin], [.bing, .ren], [.ding, .gui]]
         if pairs.contains(stems) {
-            return Relationship(type: .stemClash, pillars: [p1.type, p2.type], characters: stems[0].character + stems[1].character)
+            // Clashes are Ruthless (Seven Killings nature)
+            return Relationship(type: .stemClash, pillars: [p1.type.name, p2.type.name], characters: stems[0].character + stems[1].character, isAffectionate: false)
         }
         
         return nil
@@ -181,12 +182,12 @@ public struct FourPillars {
             [.zi, .chou], [.yin, .hai], [.mao, .xu], [.chen, .you], [.si, .shen], [.wu, .wei]
         ]
         if harmonyPairs.contains(Set([b1, b2])) {
-            rels.append(Relationship(type: .branchSixHarmony, pillars: types, characters: chars))
+            rels.append(Relationship(type: .branchSixHarmony, pillars: types.map { $0.name }, characters: chars))
         }
         
         // Clash (六冲): Diff is 6
         if abs(b1.rawValue - b2.rawValue) == 6 {
-            rels.append(Relationship(type: .branchClash, pillars: types, characters: chars))
+            rels.append(Relationship(type: .branchClash, pillars: types.map { $0.name }, characters: chars))
         }
         
         // Harm (六害)
@@ -194,19 +195,19 @@ public struct FourPillars {
             [.zi, .wei], [.chou, .wu], [.yin, .si], [.mao, .chen], [.shen, .hai], [.you, .xu]
         ]
         if harmPairs.contains(Set([b1, b2])) {
-            rels.append(Relationship(type: .branchHarm, pillars: types, characters: chars))
+            rels.append(Relationship(type: .branchHarm, pillars: types.map { $0.name }, characters: chars))
         }
         
         // Punishment (相刑) - Pair-based
         // Zuo-Mao (二刑)
         if (b1 == .zi && b2 == .mao) || (b1 == .mao && b2 == .zi) {
-            rels.append(Relationship(type: .branchPunishment, pillars: types, characters: chars))
+            rels.append(Relationship(type: .branchPunishment, pillars: types.map { $0.name }, characters: chars))
         }
         // Self Punishment (自刑): Chen, Wu, You, Hai
         if b1 == b2 {
             let selfPunish: Set<Branch> = [.chen, .wu, .you, .hai]
             if selfPunish.contains(b1) {
-                rels.append(Relationship(type: .branchPunishment, pillars: types, characters: chars))
+                rels.append(Relationship(type: .branchPunishment, pillars: types.map { $0.name }, characters: chars))
             }
         }
         
@@ -215,7 +216,7 @@ public struct FourPillars {
             [.zi, .you], [.mao, .wu], [.shen, .si], [.yin, .hai], [.chen, .chou], [.xu, .wei]
         ]
         if destructPairs.contains(Set([b1, b2])) {
-            rels.append(Relationship(type: .branchDestruction, pillars: types, characters: chars))
+            rels.append(Relationship(type: .branchDestruction, pillars: types.map { $0.name }, characters: chars))
         }
         
         return rels
@@ -235,7 +236,7 @@ public struct FourPillars {
         ]
         for (set, chars, element) in directionalSets {
             if set.allSatisfy({ branches.contains($0) }) {
-                let involved = pillars.filter { set.contains($0.branch.value) }.map { $0.type }
+                let involved = pillars.filter { set.contains($0.branch.value) }.map { $0.type.name }
                 rels.append(Relationship(type: .branchDirectional, pillars: involved, characters: chars, relatedElement: element))
             }
         }
@@ -249,7 +250,7 @@ public struct FourPillars {
         ]
         for (set, chars, element) in tripleSets {
             if set.allSatisfy({ branches.contains($0) }) {
-                let involved = pillars.filter { set.contains($0.branch.value) }.map { $0.type }
+                let involved = pillars.filter { set.contains($0.branch.value) }.map { $0.type.name }
                 rels.append(Relationship(type: .branchTripleHarmony, pillars: involved, characters: chars, relatedElement: element))
             }
         }
@@ -261,7 +262,7 @@ public struct FourPillars {
         ]
         for (set, chars) in triplePunishSets {
             if set.allSatisfy({ branches.contains($0) }) {
-                let involved = pillars.filter { set.contains($0.branch.value) }.map { $0.type }
+                let involved = pillars.filter { set.contains($0.branch.value) }.map { $0.type.name }
                 rels.append(Relationship(type: .branchPunishment, pillars: involved, characters: chars))
             }
         }

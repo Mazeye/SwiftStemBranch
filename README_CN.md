@@ -298,6 +298,39 @@ print("--- 调侯法 ---")
 print("状态: \(climateResult.description)")
 ```
 
+### 11. 动态关系分析 (通用)
+
+支持任意两组干支之间的关系分析，常用于八字原局与动态运势柱（大运/流年）的对比分析。
+
+支持检测：
+- **重叠**: 伏吟 (Fu Yin)
+- **相冲**: 反吟 (Fan Yin - 天克地冲)
+- **常规**: 刑冲会合害破
+
+```swift
+// 1. 创建八字
+let chart = FourPillars(date: Date())
+
+// 2. 定义动态柱 (例如：2024 甲辰流年)
+let grandLuck = StemBranch(stem: .jia, branch: .chen)
+
+// 3. 分析关系 (例如：年柱 vs 流年)
+let yearRels = Relationship.analyze(
+    lhs: chart.year.value,
+    rhs: grandLuck,
+    lhsName: "年柱",
+    rhsName: "流年"
+)
+
+// 打印结果
+for rel in yearRels {
+    print(rel.description)
+}
+// 示例输出: 
+// [年柱-流年] 辰酉地支六合 六合
+// [年柱-流年] 伏吟 伏吟
+```
+
 ## 📄 许可证
 
 本项目基于 MIT 许可证开源。详见 [LICENSE](LICENSE) ファイル。

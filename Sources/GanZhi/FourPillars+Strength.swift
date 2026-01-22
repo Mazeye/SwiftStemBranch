@@ -49,38 +49,43 @@ extension FourPillars {
         
         // 3. Bonuses from Branch Relationships
         // Directional Harmony (San Hui) bonus
+        
+        let sanHuiDefinitions: [FiveElements: Set<Branch>] = [
+            .wood: [.yin, .mao, .chen],
+            .fire: [.si, .wu, .wei],
+            .metal: [.shen, .you, .xu],
+            .water: [.hai, .zi, .chou]
+        ]
+        
         for rel in self.relationships where rel.type == .branchDirectional {
-            // Find which Ten God this element corresponds to
-            guard let element = rel.relatedElement else { continue }
+            guard let element = rel.relatedElement,
+                  let targetBranches = sanHuiDefinitions[element] else { continue }
             
-            // Calculate Ten God for this element relative to Day Master
-            // Note: We use the Day Master's YinYang to determine the exact Ten God.
-            // Since San Hui is an element-wide bonus, it might affect both Ten Gods of that element.
-            // Usually, it's assigned to the one matching the Main Qi or just distributed.
-            // In the Sample code, it was only added to elementScores.
-            // If we want TenGod scores, we need to decide how to distribute it.
-            // Let's assume it boosts both proportional to their existing presence or just use a default.
+            // Find involved pillars in THIS chart
+            let involvedIndices = pillars.enumerated()
+                .filter { targetBranches.contains($0.element.branch.value) }
+                .map { $0.offset }
+                .sorted()
             
-            // For simplicity and matching Sample's spirit (if it were to do Ten Gods):
-            // We'll calculate which Ten God(s) this element represents.
+            // Calculate Ten God Targets
             let tgYang = TenGods.calculate(dayMaster: self.day.stem.value, targetElement: element, targetYinYang: .yang)
             let tgYin = TenGods.calculate(dayMaster: self.day.stem.value, targetElement: element, targetYinYang: .yin)
             
-            // Add bonus to both? Or just the primary one?
-            // Let's distribute the bonus.
-            for pType in rel.pillars {
-                let bonus = (pType == .month) ? 3.0 : 1.0
+            // Distribute Base Bonus
+            for idx in involvedIndices {
+                // Month (index 1) gets higher weight
+                let bonus = (idx == 1) ? 3.0 : 1.0
                 scores[tgYang, default: 0] += bonus * 0.5
                 scores[tgYin, default: 0] += bonus * 0.5
             }
             
-            // Continuity bonus
-            let sortedIndices = rel.pillars.map { $0.rawValue }.sorted()
-            if sortedIndices.count == 3 {
-                if sortedIndices[1] == sortedIndices[0] + 1 && sortedIndices[2] == sortedIndices[1] + 1 {
-                    scores[tgYang, default: 0] += 0.5
-                    scores[tgYin, default: 0] += 0.5
-                }
+            // Continuity Bonus (Index 0,1,2 or 1,2,3 for 4 pillars)
+            if involvedIndices.count == 3 {
+                 // Check if sequential: e.g. [0,1,2] or [1,2,3]
+                 if (involvedIndices == [0, 1, 2]) || (involvedIndices == [1, 2, 3]) {
+                     scores[tgYang, default: 0] += 0.5
+                     scores[tgYin, default: 0] += 0.5
+                 }
             }
         }
         
@@ -191,17 +196,30 @@ extension FourPillars {
         }
         
         // 3. Bonuses from Branch Relationships
+        // Redefine map locally to avoid scope issues
+        let sanHuiDefinitions: [FiveElements: Set<Branch>] = [
+             .wood: [.yin, .mao, .chen],
+             .fire: [.si, .wu, .wei],
+             .metal: [.shen, .you, .xu],
+             .water: [.hai, .zi, .chou]
+         ]
+         
         for rel in self.relationships where rel.type == .branchDirectional {
-            guard let element = rel.relatedElement else { continue }
+            guard let element = rel.relatedElement,
+                  let targetBranches = sanHuiDefinitions[element] else { continue }
             
-            for pType in rel.pillars {
-                let bonus: Double = (pType == .month) ? 3.0 : 1.0
+            let involvedIndices = pillars.enumerated()
+                .filter { targetBranches.contains($0.element.branch.value) }
+                .map { $0.offset }
+                .sorted()
+            
+            for idx in involvedIndices {
+                let bonus: Double = (idx == 1) ? 3.0 : 1.0
                 scores[element, default: 0] += bonus
             }
             
-            let sortedIndices = rel.pillars.map { $0.rawValue }.sorted()
-            if sortedIndices.count == 3 {
-                if sortedIndices[1] == sortedIndices[0] + 1 && sortedIndices[2] == sortedIndices[1] + 1 {
+            if involvedIndices.count == 3 {
+                 if (involvedIndices == [0, 1, 2]) || (involvedIndices == [1, 2, 3]) {
                     scores[element, default: 0] += 1.0
                 }
             }

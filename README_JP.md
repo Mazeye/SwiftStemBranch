@@ -293,6 +293,39 @@ print("--- 調候法 ---")
 print("状態: \(climateResult.description)")
 ```
 
+### 12. 動的な関係分析 (汎用)
+
+任意の干支（Strong-Branch）ペア間の関係を分析できます。命式（原局）と大運・流年（年運）などの動的な柱を比較する際に便利です。
+
+検出可能な関係：
+- **伏吟 (Fu Yin)**: 同じ干支の重複
+- **反吟 (Fan Yin)**: 天剋地沖（天干が剋し、地支が沖する）
+- **通常**: 干合、沖、刑、害、破など
+
+```swift
+// 1. 命式を作成
+let chart = FourPillars(date: Date())
+
+// 2. 動的な柱を定義 (例：2024年 甲辰)
+let grandLuck = StemBranch(stem: .jia, branch: .chen)
+
+// 3. 関係を分析 (例：年柱 vs 流年)
+let yearRels = Relationship.analyze(
+    lhs: chart.year.value,
+    rhs: grandLuck,
+    lhsName: "年柱",
+    rhsName: "流年"
+)
+
+// 結果を出力
+for rel in yearRels {
+    print(rel.description)
+}
+// 出力例: 
+// [年柱-流年] 辰酉地支六合 六合
+// [年柱-流年] 伏吟 伏吟
+```
+
 ## 📄 ライセンス
 
 本プロジェクトは MIT ライセンスの下で公開されています。詳細は [LICENSE](LICENSE) ファイルをご覧ください。

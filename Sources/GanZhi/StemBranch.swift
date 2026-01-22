@@ -2,7 +2,7 @@ import Foundation
 
 /// A pair consisting of a Heavenly Stem and an Earthly Branch.
 /// There are 60 possible combinations (Sexagenary cycle).
-public struct StemBranch {
+public struct StemBranch: Equatable {
     public let stem: Stem
     public let branch: Branch
     

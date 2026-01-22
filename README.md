@@ -291,6 +291,39 @@ print("--- Climate Method ---")
 print("status: \(climateResult.description)")
 ```
 
+### 12. Dynamic Relationship Analysis (Generic)
+
+Analyze relationships between *any* two Stem-Branch pairs, useful for comparing the Chart against Dynamic Pillars (Grand Luck / Annual Luck / "Liu Nian").
+
+It supports detection of:
+- **Duplicates**: Fu Yin (伏吟)
+- **Clashes**: Fan Yin (反吟 - Heaven Clash & Earth Clash)
+- **Standard**: Combinations, Clashes, Harm, Punishment, Destruction
+
+```swift
+// 1. Create a Chart
+let chart = FourPillars(date: Date())
+
+// 2. Define a Dynamic Pillar (e.g., Grand Luck "Jia-Chen")
+let grandLuck = StemBranch(stem: .jia, branch: .chen)
+
+// 3. Analyze Relationships (e.g., Year Pillar vs. Grand Luck)
+let yearRels = Relationship.analyze(
+    lhs: chart.year.value,
+    rhs: grandLuck,
+    lhsName: "Year",
+    rhsName: "Grand Luck"
+)
+
+// Print results
+for rel in yearRels {
+    print(rel.description)
+}
+// Example Output: 
+// [Year-Grand Luck] 辰酉地支六合Six Harmony
+// [Year-Grand Luck] 伏吟Fu Yin
+```
+
 ## 📄 License
 
 MIT License. See [LICENSE](LICENSE) for details.
