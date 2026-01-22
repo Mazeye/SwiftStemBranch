@@ -324,11 +324,16 @@ let yearRels = Relationship.analyze(
 
 // 打印结果
 for rel in yearRels {
-    print(rel.description)
+    // 方式 1: 直接打印描述 (旧方式)
+    // print(rel.description)
+    // [年柱-流年] 辰酉地支六合 六合
+    
+    // 方式 2: 获取结构化数据 (新方式)
+    let info = rel.listing
+    print("柱名: \(info.pillars)")     // "年柱-流年"
+    print("干支: \(info.characters)")  // "辰酉"
+    print("类型: \(info.type)")        // "地支六合"
 }
-// 示例输出: 
-// [年柱-流年] 辰酉地支六合 六合
-// [年柱-流年] 伏吟 伏吟
 ```
 
 ## 📄 许可证

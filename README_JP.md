@@ -319,11 +319,16 @@ let yearRels = Relationship.analyze(
 
 // 結果を出力
 for rel in yearRels {
-    print(rel.description)
+    // 方法 1: 直接記述を表示 (従来の方法)
+    // print(rel.description)
+    // [年柱-流年] 辰酉地支六合 六合
+    
+    // 方法 2: 構造化データへのアクセス (新しい方法)
+    let info = rel.listing
+    print("柱名: \(info.pillars)")     // "年柱-流年"
+    print("干支: \(info.characters)")  // "辰酉"
+    print("タイプ: \(info.type)")      // "地支六合"
 }
-// 出力例: 
-// [年柱-流年] 辰酉地支六合 六合
-// [年柱-流年] 伏吟 伏吟
 ```
 
 ## 📄 ライセンス

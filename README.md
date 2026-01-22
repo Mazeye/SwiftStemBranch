@@ -317,11 +317,16 @@ let yearRels = Relationship.analyze(
 
 // Print results
 for rel in yearRels {
-    print(rel.description)
+    // Method 1: Direct Description (Old Way)
+    // print(rel.description)
+    // [Year-Grand Luck] 辰酉地支六合 Branch Six Harmony
+    
+    // Method 2: Structured Access (New Way)
+    let info = rel.listing
+    print("Pillars: \(info.pillars)")       // "Year-Grand Luck"
+    print("Characters: \(info.characters)") // "ChenYou"
+    print("Type: \(info.type)")             // "Branch Six Harmony"
 }
-// Example Output: 
-// [Year-Grand Luck] 辰酉地支六合Six Harmony
-// [Year-Grand Luck] 伏吟Fu Yin
 ```
 
 ## 📄 License

@@ -172,7 +172,10 @@ if !chartRels.isEmpty {
     let relTitle = (GanZhiConfig.language == .english) ? "Relationships:" : "干支关系:"
     print(relTitle)
     for rel in chartRels {
-        print("  \(rel.description)")
+        // Example of using the structured listing:
+        let l = rel.listing
+        // print("  \(rel.description)") // Old way
+        print("  \(l.pillars) | \(l.characters) | \(l.type)")
     }
     print("--------------------------------------------------")
 }

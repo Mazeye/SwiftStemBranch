@@ -5,7 +5,7 @@ public enum RelationshipType: String, CaseIterable {
     // MARK: - Stem Relationships
     case stemCombination = "天干五合"
     case stemClash = "天干相冲"
-    
+
     // MARK: - Branch Relationships
     case branchSixHarmony = "地支六合"
     case branchTripleHarmony = "地支三合"
@@ -14,11 +14,11 @@ public enum RelationshipType: String, CaseIterable {
     case branchHarm = "地支六害"
     case branchPunishment = "地支相刑"
     case branchDestruction = "地支相破"
-    
+
     // MARK: - Special Relationships
-    case fuYin = "伏吟" // Identical
-    case fanYin = "反吟" // Heaven Clash Earth Clash
-    
+    case fuYin = "伏吟"  // Identical
+    case fanYin = "反吟"  // Heaven Clash Earth Clash
+
     public var name: String {
         switch GanZhiConfig.language {
         case .simplifiedChinese: return self.rawValue
@@ -71,32 +71,50 @@ public enum RelationshipType: String, CaseIterable {
 /// Represents a specific interaction between pillars in the chart.
 public struct Relationship: CustomStringConvertible {
     public let type: RelationshipType
-    public let pillars: [String] // Decoupled from FourPillars.PillarType
+    public let pillars: [String]  // Decoupled from FourPillars.PillarType
     public let characters: String
     /// The Five Element associated with this relationship (e.g., .wood for Wood Directional Harmony).
     public let relatedElement: FiveElements?
-    
-    public let isAffectionate: Bool // New: For Stem Clash (TenGod based)
-    
-    public init(type: RelationshipType, pillars: [String], characters: String, relatedElement: FiveElements? = nil, isAffectionate: Bool = false) {
+
+    public let isAffectionate: Bool  // New: For Stem Clash (TenGod based)
+
+    public init(
+        type: RelationshipType, pillars: [String], characters: String,
+        relatedElement: FiveElements? = nil, isAffectionate: Bool = false
+    ) {
         self.type = type
         self.pillars = pillars
         self.characters = characters
         self.relatedElement = relatedElement
         self.isAffectionate = isAffectionate
     }
-    
-    public var description: String {
-        let pillarNames = pillars.joined(separator: "-")
-        var desc = "[\(pillarNames)] \(characters)\(type.name)"
-        if isAffectionate && type == .stemClash {
-            desc += " (Affectionate)"
-        }
-        return desc
+
+    public struct Listing {
+        public let pillars: String
+        public let characters: String
+        public let type: String
     }
-    
+
+    public var listing: Listing {
+        let pillarNames = pillars.joined(separator: "-")
+        var typeName = type.name
+        if isAffectionate && type == .stemClash {
+            typeName += " (Affectionate)"
+        }
+        return Listing(
+            pillars: pillarNames,
+            characters: characters,
+            type: typeName
+        )
+    }
+
+    public var description: String {
+        let l = listing
+        return "[\(l.pillars)] \(l.characters)\(l.type)"
+    }
+
     // MARK: - Analysis Logic
-    
+
     /// Analyzes the relationship between two StemBranch pairs.
     /// - Parameters:
     ///   - lhs: The first StemBranch (e.g., Year Pillar).
@@ -104,48 +122,53 @@ public struct Relationship: CustomStringConvertible {
     ///   - lhsName: Name of the first source (e.g., "Year").
     ///   - rhsName: Name of the second source (e.g., "Grand Luck").
     /// - Returns: A list of relationships found.
-    public static func analyze(lhs: StemBranch, rhs: StemBranch, lhsName: String, rhsName: String) -> [Relationship] {
+    public static func analyze(lhs: StemBranch, rhs: StemBranch, lhsName: String, rhsName: String)
+        -> [Relationship]
+    {
         var rels: [Relationship] = []
         let sources = [lhsName, rhsName]
         let stems = [lhs.stem, rhs.stem]
         let branches = [lhs.branch, rhs.branch]
-        
+
         // 0. Special Relationships
-        
+
         // Fu Yin (伏吟): Identical Pillar
         if lhs == rhs {
-             rels.append(Relationship(
-                type: .fuYin,
-                pillars: sources,
-                characters: lhs.character + rhs.character
-            ))
+            rels.append(
+                Relationship(
+                    type: .fuYin,
+                    pillars: sources,
+                    characters: lhs.character + rhs.character
+                ))
         }
-        
+
         // Fan Yin (反吟): Tian Ke Di Chong (Heavenly Clash Earthly Clash)
         // Strictly: Stem Clash AND Branch Clash
         let isStemClash = abs(stems[0].index - stems[1].index) == 6
         let isBranchClash = abs(branches[0].index - branches[1].index) == 6
-        
+
         if isStemClash && isBranchClash {
-             rels.append(Relationship(
-                type: .fanYin,
-                pillars: sources,
-                characters: lhs.character + rhs.character
-            ))
+            rels.append(
+                Relationship(
+                    type: .fanYin,
+                    pillars: sources,
+                    characters: lhs.character + rhs.character
+                ))
         }
-        
+
         // 1. Stem Relationships
-        
+
         // Combination
         if abs(stems[0].index - stems[1].index) == 5 {
-            rels.append(Relationship(
-                type: .stemCombination,
-                pillars: sources,
-                characters: stems[0].character + stems[1].character,
-                relatedElement: nil // TODO: Add transformation logic if needed
-            ))
+            rels.append(
+                Relationship(
+                    type: .stemCombination,
+                    pillars: sources,
+                    characters: stems[0].character + stems[1].character,
+                    relatedElement: nil  // TODO: Add transformation logic if needed
+                ))
         }
-        
+
         // Clash
         if abs(stems[0].index - stems[1].index) == 6 {
             // Determine Affectionate vs Ruthless
@@ -163,64 +186,66 @@ public struct Relationship: CustomStringConvertible {
             // However, we will mark `isAffectionate = false` (Ruthless) for standard Clashes.
             // If user wants generic Control detection, that's broader.
             // We'll stick to standard Clashes for now.
-            rels.append(Relationship(
-                type: .stemClash,
-                pillars: sources,
-                characters: stems[0].character + stems[1].character,
-                isAffectionate: false 
-            ))
+            rels.append(
+                Relationship(
+                    type: .stemClash,
+                    pillars: sources,
+                    characters: stems[0].character + stems[1].character,
+                    isAffectionate: false
+                ))
         }
-        
+
         // 2. Branch Relationships
-        
+
         let b1 = branches[0]
         let b2 = branches[1]
         let bChars = b1.character + b2.character
-        
+
         // Six Harmony
         let sixHarmonyPairs: Set<Set<Branch>> = [
-            [.zi, .chou], [.yin, .hai], [.mao, .xu], 
-            [.chen, .you], [.si, .shen], [.wu, .wei]
+            [.zi, .chou], [.yin, .hai], [.mao, .xu],
+            [.chen, .you], [.si, .shen], [.wu, .wei],
         ]
         if sixHarmonyPairs.contains([b1, b2]) {
-             rels.append(Relationship(type: .branchSixHarmony, pillars: sources, characters: bChars))
+            rels.append(Relationship(type: .branchSixHarmony, pillars: sources, characters: bChars))
         }
-        
+
         // Clash
         if abs(b1.index - b2.index) == 6 {
-             rels.append(Relationship(type: .branchClash, pillars: sources, characters: bChars))
+            rels.append(Relationship(type: .branchClash, pillars: sources, characters: bChars))
         }
-        
+
         // Harm
         let harmPairs: Set<Set<Branch>> = [
             [.zi, .wei], [.chou, .wu], [.yin, .si],
-            [.mao, .chen], [.shen, .hai], [.you, .xu]
+            [.mao, .chen], [.shen, .hai], [.you, .xu],
         ]
         if harmPairs.contains([b1, b2]) {
-             rels.append(Relationship(type: .branchHarm, pillars: sources, characters: bChars))
+            rels.append(Relationship(type: .branchHarm, pillars: sources, characters: bChars))
         }
-        
+
         // Punishment (Pairwise)
         if b1 == b2 && [.chen, .wu, .you, .hai].contains(b1) {
-             rels.append(Relationship(type: .branchPunishment, pillars: sources, characters: bChars))
+            rels.append(Relationship(type: .branchPunishment, pillars: sources, characters: bChars))
         }
         let punishPairs: Set<Set<Branch>> = [
             [.zi, .mao], [.yin, .si], [.si, .shen], [.shen, .yin],
-            [.chou, .wei], [.wei, .xu], [.xu, .chou]
+            [.chou, .wei], [.wei, .xu], [.xu, .chou],
         ]
         if punishPairs.contains([b1, b2]) {
-             rels.append(Relationship(type: .branchPunishment, pillars: sources, characters: bChars))
+            rels.append(Relationship(type: .branchPunishment, pillars: sources, characters: bChars))
         }
 
         // Destruction
         let destructPairs: Set<Set<Branch>> = [
-            [.zi, .you], [.si, .shen], [.yin, .hai], 
-            [.chen, .chou], [.wu, .mao], [.xu, .wei]
+            [.zi, .you], [.si, .shen], [.yin, .hai],
+            [.chen, .chou], [.wu, .mao], [.xu, .wei],
         ]
         if destructPairs.contains([b1, b2]) {
-             rels.append(Relationship(type: .branchDestruction, pillars: sources, characters: bChars))
+            rels.append(
+                Relationship(type: .branchDestruction, pillars: sources, characters: bChars))
         }
-        
+
         return rels
     }
 }
