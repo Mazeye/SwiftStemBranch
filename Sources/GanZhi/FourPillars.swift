@@ -9,11 +9,15 @@ public struct FourPillars {
     private let _day: StemBranch
     private let _hour: StemBranch
     
-    public init(year: StemBranch, month: StemBranch, day: StemBranch, hour: StemBranch) {
+    /// The lunar phase at the time of birth, if available.
+    public let lunarPhase: LunarPhase?
+    
+    public init(year: StemBranch, month: StemBranch, day: StemBranch, hour: StemBranch, lunarPhase: LunarPhase? = nil) {
         self._year = year
         self._month = month
         self._day = day
         self._hour = hour
+        self.lunarPhase = lunarPhase
     }
     
     // Accessors returning Contextual Pillar wrappers

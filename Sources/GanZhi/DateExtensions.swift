@@ -139,7 +139,10 @@ public extension Date {
         let hourStem = Stem.from(index: hourStemStart + hourBranch.index)
         let hourSB = StemBranch(stem: hourStem, branch: hourBranch)
         
-        return FourPillars(year: yearSB, month: monthSB, day: daySB, hour: hourSB)
+        // --- Lunar Phase ---
+        let lunarPhase = LunarCalculator.getLunarPhase(date: date)
+        
+        return FourPillars(year: yearSB, month: monthSB, day: daySB, hour: hourSB, lunarPhase: lunarPhase)
     }
     
     private func getTrueSolarTime(for date: Date, location: Location, calendar: Calendar) -> Date {

@@ -208,6 +208,14 @@ let elementScores = pillars.elementStrengths
 let tenGodScores = pillars.tenGodStrengths
 let dayMasterScore = pillars.day.stem.energy
 
+// Lunar Phase info
+if let phase = pillars.lunarPhase {
+    let moonLabel = (GanZhiConfig.language == .english) ? "Moon Phase" : "月相信息"
+    let ageLabel = (GanZhiConfig.language == .english) ? "Age" : "月龄"
+    let illumLabel = (GanZhiConfig.language == .english) ? "Illum" : "照亮"
+    print("\n\(moonLabel): \(phase.phaseName) (\(ageLabel) \(String(format: "%.1f", phase.age)), \(illumLabel) \(String(format: "%.0f", phase.illumination * 100))%)")
+}
+
 let totalScore = elementScores.values.reduce(0, +)
 
 for element in FiveElements.allCases {
