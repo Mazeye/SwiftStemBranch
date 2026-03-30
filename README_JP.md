@@ -33,6 +33,39 @@ dependencies: [
 
 またはXcodeで：`File` > `Add Packages...` > リポジトリのURLを入力。
 
+> 補足：このパッケージには 2 つのライブラリ product（`GanZhi` / `GanZhiWasmBridge`）があります。
+> iOS/macOS では通常 `GanZhi` のみを選択してください。
+
+### WebAssembly（任意）
+
+このリポジトリには wasm 実行用 target `GanZhiWasmRuntime` も含まれます。
+
+1) wasm をビルド:
+
+```bash
+./scripts/build-wasm.sh
+```
+
+ホスト側 Swift ツールチェーンと wasm SDK のバージョンが合わない場合は、Swift コマンドを明示してください。
+
+```bash
+SWIFT_CMD="swiftly run swift +6.2.0" ./scripts/build-wasm.sh
+```
+
+2) 生成物（`web-demo/dist/`）:
+
+- `ganzhi.wasm`
+- `ganzhi.wasm.gz`
+- `ganzhi.wasm.br`
+
+3) ブラウザデモを起動:
+
+```bash
+python3 -m http.server 8080
+```
+
+`http://localhost:8080/web-demo/` を開いてください。
+
 ## 🚀 クイックスタート
 
 ### 1. 基本的な使用法（平均太陽時）

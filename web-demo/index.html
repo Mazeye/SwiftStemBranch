@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GanZhi Wasm Demo</title>
+  <style>
+    :root {
+      --bg: #f3f4f6;
+      --card: #ffffff;
+      --text: #111827;
+      --muted: #4b5563;
+      --accent: #0f766e;
+      --accent-hover: #115e59;
+      --border: #d1d5db;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "SF Pro Text", "PingFang SC", "Noto Sans CJK SC", sans-serif;
+      color: var(--text);
+      background: linear-gradient(145deg, #e5e7eb 0%, #f8fafc 40%, #e2e8f0 100%);
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      display: grid;
+      gap: 16px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
+    }
+
+    h1 { margin: 0 0 8px; font-size: 24px; }
+    p { margin: 0; color: var(--muted); }
+
+    textarea {
+      width: 100%;
+      min-height: 220px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      font-family: ui-monospace, "SF Mono", Menlo, monospace;
+      font-size: 13px;
+      line-height: 1.45;
+      resize: vertical;
+    }
+
+    button {
+      border: none;
+      border-radius: 10px;
+      padding: 10px 16px;
+      color: white;
+      background: var(--accent);
+      cursor: pointer;
+      font-size: 14px;
+      transition: background .2s ease;
+    }
+
+    button:hover { background: var(--accent-hover); }
+    pre {
+      margin: 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: ui-monospace, "SF Mono", Menlo, monospace;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <section class="card">
+      <h1>GanZhi Wasm Browser Demo</h1>
+      <p>先运行 <code>./scripts/build-wasm.sh</code> 生成 <code>web-demo/dist/ganzhi.wasm</code>，再用静态服务器打开本页。</p>
+    </section>
+
+    <section class="card">
+      <textarea id="request"></textarea>
+      <div style="margin-top: 12px;">
+        <button id="runBtn" type="button">运行分析</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <pre id="output">等待执行...</pre>
+    </section>
+  </main>
+
+  <script type="module" src="./main.js"></script>
+</body>
+</html>

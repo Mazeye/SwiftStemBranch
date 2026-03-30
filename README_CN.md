@@ -33,6 +33,39 @@ dependencies: [
 
 或者在 Xcode 中：`File` > `Add Packages...` > 输入仓库 URL。
 
+> 提示：仓库当前提供两个 product：`GanZhi` 与 `GanZhiWasmBridge`。
+> iOS / macOS 客户端只需继续选择 `GanZhi`，不会自动引入 `GanZhiWasmBridge` 的编译与链接。
+
+### WebAssembly（可选）
+
+仓库还提供了一个 wasm 运行时 target：`GanZhiWasmRuntime`，用于浏览器侧调用。
+
+```bash
+./scripts/build-wasm.sh
+```
+
+如果本机 Swift 工具链与 wasm SDK 版本不匹配，可显式指定 Swift 命令：
+
+```bash
+SWIFT_CMD="swiftly run swift +6.2.0" ./scripts/build-wasm.sh
+```
+
+构建成功后会在 `web-demo/dist/` 生成：
+
+- `ganzhi.wasm`
+- `ganzhi.wasm.gz`
+- `ganzhi.wasm.br`
+
+启动本地页面示例：
+
+```bash
+python3 -m http.server 8080
+```
+
+访问：`http://localhost:8080/web-demo/`
+
+可配合示例页面 `web-demo/index.html` 使用（详见 `web-demo/README.md`）。
+
 ## 🚀 快速开始
 
 ### 1. 基础排盘（平太阳时）

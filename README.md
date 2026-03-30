@@ -33,6 +33,39 @@ dependencies: [
 
 Or in Xcode: `File` > `Add Packages...` > Enter repository URL.
 
+> Note: the package currently provides two library products: `GanZhi` and `GanZhiWasmBridge`.
+> For iOS/macOS apps, keep selecting `GanZhi`; adding `GanZhiWasmBridge` is optional.
+
+### WebAssembly (Optional)
+
+This repo also provides a wasm runtime target: `GanZhiWasmRuntime`.
+
+1) Build wasm:
+
+```bash
+./scripts/build-wasm.sh
+```
+
+If your host Swift toolchain does not match the wasm SDK version, run with an explicit Swift command:
+
+```bash
+SWIFT_CMD="swiftly run swift +6.2.0" ./scripts/build-wasm.sh
+```
+
+2) Artifacts are generated in `web-demo/dist/`:
+
+- `ganzhi.wasm`
+- `ganzhi.wasm.gz`
+- `ganzhi.wasm.br`
+
+3) Run the browser demo:
+
+```bash
+python3 -m http.server 8080
+```
+
+Open `http://localhost:8080/web-demo/`.
+
 ## 🚀 Quick Start
 
 ### 1. Basic Usage (Mean Solar Time)

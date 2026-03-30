@@ -306,7 +306,6 @@ extension FourPillars {
                 if (hasStrongCombination(for: .water) || elementStrength >= 23.8) {
                     return Pattern(tenGod: .friend, method: .runXia, customName: Pattern.DeterminationMethod.runXia.description)
                 }
-            default: break
             }
         }
         
